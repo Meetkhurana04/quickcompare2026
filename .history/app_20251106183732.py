@@ -64,7 +64,7 @@ def fetch_comparify_data(query):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        # print(f"Error fetching data from Comparify: {e}")
+        print(f"Error fetching data from Comparify: {e}")
         return None
 
 def normalize_product_name(name):
@@ -124,7 +124,7 @@ def merge_shop_data(query, comparify_data, shop_data):
         if query_lower in normalized_item or normalized_item in query_lower:
             filtered_shop_data.append(item)
     
-    # print(f"Filtered {len(filtered_shop_data)} shop items for query '{query}'")  # Debug
+    print(f"Filtered {len(filtered_shop_data)} shop items for query '{query}'")  # Debug
     
     # Dictionary to store products: key = normalized name, value = product data
     products_map = {}
@@ -330,7 +330,7 @@ def update_location():
 if __name__ == '__main__':
     # Check if shop CSV exists, create template if not
     if not os.path.exists(SHOP_CSV_FILE):
-        # print(f"Creating template CSV file: {SHOP_CSV_FILE}")
+        print(f"Creating template CSV file: {SHOP_CSV_FILE}")
         template_df = pd.DataFrame({
             'product_name': ['Aashirvaad Shudh Chakki Atta (5 kg)', 'Fortune Chakki Fresh Atta (5 kg)'],
             'price': [235, 210],

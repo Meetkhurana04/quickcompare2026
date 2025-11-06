@@ -330,7 +330,7 @@ def update_location():
 if __name__ == '__main__':
     # Check if shop CSV exists, create template if not
     if not os.path.exists(SHOP_CSV_FILE):
-        # print(f"Creating template CSV file: {SHOP_CSV_FILE}")
+        print(f"Creating template CSV file: {SHOP_CSV_FILE}")
         template_df = pd.DataFrame({
             'product_name': ['Aashirvaad Shudh Chakki Atta (5 kg)', 'Fortune Chakki Fresh Atta (5 kg)'],
             'price': [235, 210],
