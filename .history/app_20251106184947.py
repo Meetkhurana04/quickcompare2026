@@ -4,12 +4,12 @@ import pandas as pd
 import os
 import re
 import json
+import urllib.parse
 
 app = Flask(__name__)
 
 # Configuration - Update these as needed
 COMPARIFY_API_URL = "https://api.comparify.pro/api/aggregate"
-LOCATION_AUTOCOMPLETE_URL = "https://api.comparify.pro/api/location-autocomplete"
 SHOP_NAME = "My Local Shop"
 SHOP_CSV_FILE = "shop_prices.csv"
 
@@ -299,28 +299,51 @@ def location_search():
         return jsonify({'info': {'status': 'success'}, 'data': []})
     
     lat_bias = request.args.get('lat', '28.4838282')
-    lng_bias = request.args.get('lng', '77.00285219999999')
+    lng_bias = request.args.get('lng', '77.0028522')
     
-    payload = {
-        "searchWord": q,
-        "location": {"lat": float(lat_bias), "lng": float(lng_bias)}
-    }
+    # Bias search to area around current location
+    delta = 0.05  # Small area around point
+    viewbox = f"{float(lng_bias) - delta},{float(lat_bias) - delta},{float(lng_bias) + delta},{float(lat_bias) + delta}"
+    
+    # Search query biased to Haryana/Gurugram
+    search_q = f"{q}, Gurugram, Haryana, India"
+    nom_url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(search_q)}&format=json&limit=5&countrycodes=in&addressdetails=1&viewbox={viewbox}&bounded=1"
     
     try:
-        response = requests.post(LOCATION_AUTOCOMPLETE_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+        resp = requests.get(nom_url, headers={'User-Agent': 'SmartCompare/1.0'}, timeout=10)
+        resp.raise_for_status()
+        data_list = resp.json()
         
-        if data.get('info', {}).get('status') == 'success':
-            # Ensure data items have lat/lng if missing (fallback to bias)
-            for item in data['data']:
-                if 'lat' not in item:
-                    item['lat'] = lat_bias
-                if 'lng' not in item:
-                    item['lng'] = lng_bias
-            return jsonify(data)
-        else:
-            return jsonify({'info': {'status': 'success'}, 'data': []})
+        results = []
+        for item in data_list:
+            addr = item.get('address', {})
+            display_name = item.get('display_name', '')
+            place_type = item.get('type', '')
+            
+            # Filter for relevant place types (areas, sectors, etc.)
+            if place_type not in ['suburb', 'neighbourhood', 'city_district', 'quarter', 'residential', 'hamlet']:
+                continue
+            
+            pincode = addr.get('postcode')
+            name = display_name.split(',')[0].strip()
+            lat_ = item.get('lat')
+            lon_ = item.get('lon')
+            place_id = item.get('place_id')
+            
+            if lat_ and lon_:
+                results.append({
+                    "placeId": place_id,
+                    "description": display_name,
+                    "name": name,
+                    "pincode": pincode,
+                    "lat": lat_,
+                    "lng": lon_
+                })
+        
+        return jsonify({
+            "info": {"status": "success"},
+            "data": results[:5]
+        })
     except Exception as e:
         print(f"Location search error: {e}")
         return jsonify({"info": {"status": "success"}, "data": []})
