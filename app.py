@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import re
 import json
+import urllib.parse
 
 app = Flask(__name__)
 
@@ -295,29 +296,55 @@ def merge_shop_data(query, comparify_data, shop_data):
 @app.route('/location-search')
 def location_search():
     q = request.args.get('q', '').strip()
-    if len(q) < 3:
+    if len(q) < 2:
         return jsonify({'info': {'status': 'success'}, 'data': []})
     
     lat_bias = request.args.get('lat', '28.4838282')
-    lng_bias = request.args.get('lng', '77.00285219999999')
-    
-    payload = {
-        "searchWord": q,
-        "location": {"lat": float(lat_bias), "lng": float(lng_bias)}
-    }
+    lng_bias = request.args.get('lng', '77.0028522')
     
     try:
-        response = requests.post(LOCATION_AUTOCOMPLETE_URL, json=payload, timeout=10)
+        payload = {
+            "searchWord": q,
+            "location": {
+                "lat": float(lat_bias),
+                "lng": float(lng_bias)
+            }
+        }
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(LOCATION_AUTOCOMPLETE_URL, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         
+        # Ensure the response has the expected structure
         if data.get('info', {}).get('status') == 'success':
-            # Ensure data items have lat/lng if missing (fallback to bias)
-            for item in data['data']:
-                if 'lat' not in item:
-                    item['lat'] = lat_bias
-                if 'lng' not in item:
-                    item['lng'] = lng_bias
+            # Add lat/lng if not present (but from example, placeId is Google, so might need to fetch, but for now assume API provides or use as is)
+            # In example, no lat/lng in response, but we need for search
+            # Wait, in user's example, response has no lat/lng, only placeId, description, name, pincode
+            # To get lat/lng, we need to use placeId with Google Places API or something
+            # But since no access, perhaps reverse geocode or assume
+            # For simplicity, since it's Comparify, perhaps they use Google placeId, we can fetch details if needed
+            # But to make it work, let's add a quick Nominatim fallback or something, but better: use the placeId to get coords via Nominatim or Google
+            # Since no Google key, use Nominatim on description
+            
+            results = []
+            for item in data.get('data', []):
+                # Use description to get lat/lng via Nominatim
+                desc = item.get('description', '')
+                if desc:
+                    nom_url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(desc)}&format=json&limit=1&countrycodes=in"
+                    try:
+                        nom_resp = requests.get(nom_url, headers={'User-Agent': 'SmartCompare/1.0'}, timeout=5)
+                        nom_resp.raise_for_status()
+                        nom_data = nom_resp.json()
+                        if nom_data:
+                            lat_ = nom_data[0].get('lat')
+                            lon_ = nom_data[0].get('lon')
+                            if lat_ and lon_:
+                                item['lat'] = lat_
+                                item['lng'] = lon_
+                    except:
+                        pass  # Keep without if fails
+            
             return jsonify(data)
         else:
             return jsonify({'info': {'status': 'success'}, 'data': []})

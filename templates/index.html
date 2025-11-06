@@ -194,14 +194,123 @@
             letter-spacing: -0.02em;
         }
 
-        /* Location dropdown styles */
-        #locationSuggestions {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        /* Loading spinner for suggestions */
+        .suggestion-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: rgba(255, 255, 255, 0.5);
         }
 
-        #locationSuggestions div:hover {
-            background: rgba(147, 51, 234, 0.2) !important;
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 80%;
+            max-width: 80%;
+            height: 80vh;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .location-indicator {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .location-indicator:hover {
+            border-color: rgba(147, 51, 234, 0.3);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.1);
+        }
+
+        .change-location-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .change-location-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Remove stacking context on content wrapper so dropdown can appear above header */
+        .content-wrapper {
+            z-index: auto !important;
+        }
+
     </style>
 </head>
 <body>
@@ -234,33 +343,19 @@
             <div class="container mx-auto px-2">
                 <!-- Search Section -->
                 <div id="searchSection" class="max-w-3xl mx-auto">
-                    <!-- Location Selector -->
-                    <div class="glass-card rounded-2xl shadow-xl p-6 mb-6">
-                        <label class="block text-white mb-2 font-medium flex items-center">
+                    <!-- Location Indicator -->
+                    <div id="locationIndicator" class="location-indicator text-white flex items-center justify-between">
+                        <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2 text-purple-400"></i>
-                            Your Location (Select from valid areas only)
-                        </label>
-                        <div class="relative">
-                            <input 
-                                type="text" 
-                                id="locationInput" 
-                                placeholder="Enter your area or sector (e.g., sec)..." 
-                                class="glass-search w-full px-6 py-4 text-lg text-white rounded-xl focus:outline-none pr-6"
-                            >
-                            <div id="locationSuggestions" class="absolute z-50 top-full left-0 right-0 bg-black/90 backdrop-blur-md rounded-b-xl mt-1 max-h-60 overflow-y-auto hidden border border-white/20">
-                                <!-- Suggestions will be populated here -->
-                            </div>
+                            <span id="selectedLocationText">Location set: Sector 4, Gurugram, Haryana, India (122006)</span>
                         </div>
-                        <div id="selectedLocation" class="mt-3 text-sm text-gray-300 flex items-center hidden">
-                            <i class="fas fa-check-circle mr-2 text-green-400"></i>
-                            <span id="selectedLocationText"></span>
-                        </div>
-                        <div class="mt-2 text-xs text-gray-500">
-                            Only select from the dropdown to ensure valid location for accurate prices.
-                        </div>
+                        <button id="changeLocationBtn" class="change-location-btn">
+                            <i class="fas fa-edit"></i>
+                            Change
+                        </button>
                     </div>
                     
-                    <div class="glass-card rounded-2xl shadow-xl p-6">
+                    <div class="glass-card rounded-2xl shadow-xl p-6" id="searchbox">
                         <div class="relative">
                             <input 
                                 type="text" 
@@ -342,26 +437,87 @@
                 </p>
             </div>
         </footer>
+
+        <!-- Location Modal -->
+        <div id="locationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Select Your Location</h3>
+                    <button class="close-modal" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="modalLocationInput" 
+                        placeholder="Enter your area or sector (e.g., sec)..." 
+                        class="glass-search w-full px-6 py-4 text-lg text-white rounded-xl focus:outline-none"
+                    >
+                    <div id="locationSuggestions" class="absolute z-50 top-full left-0 right-0 bg-black/90 backdrop-blur-md rounded-b-xl mt-1 hidden border border-white/20">
+                        <!-- Suggestions will be populated here -->
+                    </div>
+                </div>
+                <div id="modalSelectedLocation" class="mt-3 text-sm text-gray-300 flex items-center hidden">
+                    <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                    <span id="modalSelectedLocationText"></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         // Location Management
-        const locationInput = document.getElementById('locationInput');
+        const changeLocationBtn = document.getElementById('changeLocationBtn');
+        const locationModal = document.getElementById('locationModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalLocationInput = document.getElementById('modalLocationInput');
         const locationSuggestions = document.getElementById('locationSuggestions');
         const selectedLocationText = document.getElementById('selectedLocationText');
-        const selectedLocationDiv = document.getElementById('selectedLocation');
+        const modalSelectedLocationText = document.getElementById('modalSelectedLocationText');
+        const modalSelectedLocationDiv = document.getElementById('modalSelectedLocation');
+        const searchBtn = document.getElementById('searchBtn');
         
         let currentLocation = {
             placeId: "ChIJdS50fH0XDTkRQ5wjPQsE08A",
+            description: "Sector 4, Gurugram, Haryana, India",
             lat: 28.4838282,
             lng: 77.00285219999999,
-            pincode: "122006",
-            description: "Sector 4, Gurugram, Haryana, India"
+            pincode: "122006"
         };
+        let isLocationSelected = true; // Initially true for default
         
         function updateSelectedLocation() {
-            selectedLocationText.innerHTML = `Serving: ${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
-            selectedLocationDiv.classList.remove('hidden');
+            selectedLocationText.innerHTML = `${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
+            modalSelectedLocationText.innerHTML = `Serving: ${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
+            modalSelectedLocationDiv.classList.remove('hidden');
+            searchBtn.disabled = false;
+            isLocationSelected = true;
+        }
+        
+        function revertToDefaultLocation() {
+            currentLocation = {
+                placeId: "ChIJdS50fH0XDTkRQ5wjPQsE08A",
+                description: "Sector 4, Gurugram, Haryana, India",
+                lat: 28.4838282,
+                lng: 77.00285219999999,
+                pincode: "122006"
+            };
+            modalLocationInput.value = currentLocation.description;
+            updateSelectedLocation();
+        }
+        
+        function openModal() {
+            locationModal.classList.add('active');
+            modalLocationInput.value = currentLocation.description.split(',')[0].trim() || currentLocation.description;
+            modalSelectedLocationDiv.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent body scroll
+        }
+
+        function closeLocationModal() {
+            locationModal.classList.remove('active');
+            locationSuggestions.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore body scroll
         }
         
         function debounce(func, wait) {
@@ -377,11 +533,15 @@
         }
         
         const debouncedLocationSearch = debounce(async (value) => {
-            if (value.length < 3) {
+            if (value.length < 2) {
+                locationSuggestions.innerHTML = '';
                 locationSuggestions.classList.add('hidden');
-                locationInput.setCustomValidity('');
                 return;
             }
+            
+            // Show loading
+            locationSuggestions.innerHTML = '<div class="suggestion-loading"><div class="loading" style="width: 20px; height: 20px; border-width: 2px;"></div> Searching...</div>';
+            locationSuggestions.classList.remove('hidden');
             
             try {
                 const url = `/location-search?q=${encodeURIComponent(value)}&lat=${currentLocation.lat}&lng=${currentLocation.lng}`;
@@ -390,86 +550,94 @@
                 
                 if (data.info?.status === 'success' && data.data && data.data.length > 0) {
                     locationSuggestions.innerHTML = data.data.map(item => `
-                        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 text-white flex items-center justify-between" onclick="selectLocation('${item.placeId || ''}', '${item.description.replace(/'/g, "\\'")}', ${item.lat || currentLocation.lat}, ${item.lng || currentLocation.lng}, '${(item.pincode || '')}')">
+                        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 text-white flex items-center justify-between" onclick="selectLocation('${item.placeId}', '${item.description.replace(/'/g, "\\'")}', ${item.lat || currentLocation.lat}, ${item.lng || currentLocation.lng}, '${item.pincode || ''}')">
                             <div>
-                                <div class="font-medium">${item.name || item.description.split(',')[0]}</div>
+                                <div class="font-medium">${item.name || item.description}</div>
                                 <div class="text-gray-400 text-sm mt-1">${item.description}</div>
-                                ${item.pincode ? `<div class="text-green-400 text-xs">PIN: ${item.pincode}</div>` : ''}
+                                ${item.pincode ? `<div class="text-purple-400 text-xs">${item.pincode}</div>` : ''}
                             </div>
-                            <i class="fas fa-check text-purple-400 text-sm ml-2"></i>
+                            <i class="fas fa-map-marker-alt text-purple-400 text-sm"></i>
                         </div>
                     `).join('');
-                    locationSuggestions.classList.remove('hidden');
-                    locationInput.setCustomValidity('');
                 } else {
-                    locationSuggestions.innerHTML = '<div class="p-3 text-gray-500 text-center">No valid locations found</div>';
-                    locationSuggestions.classList.remove('hidden');
-                    locationInput.setCustomValidity('Please select a valid location from the dropdown');
+                    locationSuggestions.innerHTML = '<div class="p-3 text-gray-400 text-center">No locations found</div>';
                 }
             } catch (err) {
                 console.error('Location search error:', err);
-                locationSuggestions.classList.add('hidden');
-                locationInput.setCustomValidity('Error fetching locations. Please try again.');
+                locationSuggestions.innerHTML = '<div class="p-3 text-red-400 text-center">Error loading locations</div>';
             }
-        }, 300);
+        }, 200); // Faster debounce for realtime feel
         
-        locationInput.addEventListener('input', (e) => {
-            if (e.target.value.length >= 3) {
-                debouncedLocationSearch(e.target.value);
-            } else {
+        modalLocationInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value === currentLocation.description) {
+                // If typing the current, don't search
                 locationSuggestions.classList.add('hidden');
-                locationInput.setCustomValidity('');
+                return;
+            }
+            debouncedLocationSearch(value);
+        });
+        
+        modalLocationInput.addEventListener('focus', () => {
+            if (modalLocationInput.value.length >= 2 && modalLocationInput.value !== currentLocation.description) {
+                debouncedLocationSearch(modalLocationInput.value);
             }
         });
         
-        locationInput.addEventListener('focus', () => {
-            if (locationInput.value.length >= 3 && locationSuggestions.classList.contains('hidden')) {
-                debouncedLocationSearch(locationInput.value);
-            }
-        });
-        
-        // Prevent manual entry - only allow selection
-        locationInput.addEventListener('change', (e) => {
-            if (!currentLocation.description.includes(e.target.value)) {
-                e.target.value = '';
-                locationInput.setCustomValidity('Please select from the dropdown only');
-                alert('Please select a location from the suggested valid options only.');
-            }
+        // Blur handler to prevent invalid selection
+        modalLocationInput.addEventListener('blur', (e) => {
+            setTimeout(() => {
+                if (locationSuggestions.contains(document.activeElement)) {
+                    return; // Still in dropdown
+                }
+                if (modalLocationInput.value !== currentLocation.description && !isLocationSelected) {
+                    // Revert if invalid
+                    modalLocationInput.value = currentLocation.description;
+                }
+                locationSuggestions.classList.add('hidden');
+            }, 150);
         });
         
         window.selectLocation = function(placeId, desc, lat, lng, pin) {
             currentLocation = {
-                placeId: placeId || currentLocation.placeId,
+                placeId,
                 description: desc,
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 pincode: pin || currentLocation.pincode
             };
-            locationInput.value = currentLocation.description.split(',')[0].trim(); // Show short name
+            modalLocationInput.value = desc.split(',')[0].trim() || desc; // Show short name
+            isLocationSelected = true;
             locationSuggestions.classList.add('hidden');
-            locationInput.setCustomValidity('');
             updateSelectedLocation();
+            closeLocationModal();
         };
         
+        // Event listeners for modal
+        changeLocationBtn.addEventListener('click', openModal);
+        closeModal.addEventListener('click', closeLocationModal);
+        locationModal.addEventListener('click', (e) => {
+            if (e.target === locationModal) {
+                closeLocationModal();
+            }
+        });
+        
         // Initialize location
-        locationInput.value = currentLocation.description.split(',')[0].trim();
         updateSelectedLocation();
         
         // Hide suggestions on click outside
         document.addEventListener('click', (e) => {
-            if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
+            if (!modalLocationInput.contains(e.target) && !locationSuggestions.contains(e.target) && locationModal.classList.contains('active')) {
                 locationSuggestions.classList.add('hidden');
-                // Validate if input matches selected
-                if (locationInput.value && !currentLocation.description.toLowerCase().includes(locationInput.value.toLowerCase())) {
-                    locationInput.value = '';
-                    alert('Invalid location. Please select from dropdown.');
+                // If value changed without selection, revert
+                if (modalLocationInput.value !== (currentLocation.description.split(',')[0].trim() || currentLocation.description)) {
+                    modalLocationInput.value = currentLocation.description.split(',')[0].trim() || currentLocation.description;
                 }
             }
         });
         
         // Search functionality
         const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
         const mainContent = document.getElementById('mainContent');
         const loadingState = document.getElementById('loadingState');
         const resultsSection = document.getElementById('resultsSection');
@@ -526,9 +694,9 @@
                 return;
             }
 
-            // Ensure location is set (initially it is)
-            if (!currentLocation.lat || !currentLocation.lng) {
-                alert('Please select a valid location from the dropdown first');
+            // Ensure location is set
+            if (!isLocationSelected || !currentLocation.lat || !currentLocation.lng) {
+                alert('Please select a valid location first');
                 return;
             }
 
