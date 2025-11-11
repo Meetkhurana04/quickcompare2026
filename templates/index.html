@@ -347,7 +347,7 @@
                     <div id="locationIndicator" class="location-indicator text-white flex items-center justify-between">
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2 text-purple-400"></i>
-                            <span id="selectedLocationText">Location set: Sector 4, Gurugram, Haryana, India (122006)</span>
+                            <span id="selectedLocationText"></span>
                         </div>
                         <button id="changeLocationBtn" class="change-location-btn">
                             <i class="fas fa-edit"></i>
@@ -426,14 +426,14 @@
         </div>
 
         <!-- Footer -->
-        <footer id="footer" class="hidden relative z-10 py-6 mt-16" style="background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <footer id="footer" class="relative z-10 py-6 mt-0" style="background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1);">
             <div class="container mx-auto px-4 text-center">
                 <p class="text-gray-400 text-sm">
                     <i class="fas fa-info-circle mr-2"></i>
                     Prices are fetched in real-time from multiple sources
                 </p>
                 <p class="text-gray-500 text-xs mt-2">
-                    Built with ❤️ by SmartCompare
+                    Built with ❤️ by Meet Khurana
                 </p>
             </div>
         </footer>
@@ -467,396 +467,437 @@
     </div>
 
     <script>
-        // Location Management
-        const changeLocationBtn = document.getElementById('changeLocationBtn');
-        const locationModal = document.getElementById('locationModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalLocationInput = document.getElementById('modalLocationInput');
-        const locationSuggestions = document.getElementById('locationSuggestions');
-        const selectedLocationText = document.getElementById('selectedLocationText');
-        const modalSelectedLocationText = document.getElementById('modalSelectedLocationText');
-        const modalSelectedLocationDiv = document.getElementById('modalSelectedLocation');
-        const searchBtn = document.getElementById('searchBtn');
-        
-        let currentLocation = {
-            placeId: "ChIJdS50fH0XDTkRQ5wjPQsE08A",
-            description: "Sector 4, Gurugram, Haryana, India",
-            lat: 28.4838282,
-            lng: 77.00285219999999,
-            pincode: "122006"
-        };
-        let isLocationSelected = true; // Initially true for default
-        
-        function updateSelectedLocation() {
+    // Location Management
+    const changeLocationBtn = document.getElementById('changeLocationBtn');
+    const locationModal = document.getElementById('locationModal');
+    const closeModal = document.getElementById('closeModal');
+    const modalLocationInput = document.getElementById('modalLocationInput');
+    const locationSuggestions = document.getElementById('locationSuggestions');
+    const selectedLocationText = document.getElementById('selectedLocationText');
+    const modalSelectedLocationText = document.getElementById('modalSelectedLocationText');
+    const modalSelectedLocationDiv = document.getElementById('modalSelectedLocation');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    let currentLocation = {
+        placeId: null, // Start with null instead of default
+        description: "",
+        lat: null,
+        lng: null,
+        pincode: ""
+    };
+    let isLocationSelected = false; // Start as false to force selection
+
+    // Initialize with empty location - force user to select
+    function initializeLocation() {
+        selectedLocationText.innerHTML = '<span class="text-yellow-400">Please select a location</span>';
+        searchBtn.disabled = true;
+        searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        isLocationSelected = false;
+    }
+    
+    function updateSelectedLocation() {
+        if (currentLocation.description) {
             selectedLocationText.innerHTML = `${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
             modalSelectedLocationText.innerHTML = `Serving: ${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
             modalSelectedLocationDiv.classList.remove('hidden');
             searchBtn.disabled = false;
+            searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             isLocationSelected = true;
+        } else {
+            initializeLocation();
         }
-        
-        function revertToDefaultLocation() {
-            currentLocation = {
-                placeId: "ChIJdS50fH0XDTkRQ5wjPQsE08A",
-                description: "Sector 4, Gurugram, Haryana, India",
-                lat: 28.4838282,
-                lng: 77.00285219999999,
-                pincode: "122006"
-            };
-            modalLocationInput.value = currentLocation.description;
-            updateSelectedLocation();
-        }
-        
-        function openModal() {
-            locationModal.classList.add('active');
-            modalLocationInput.value = currentLocation.description.split(',')[0].trim() || currentLocation.description;
+    }
+    
+    function openModal() {
+        locationModal.classList.add('active');
+        modalLocationInput.value = currentLocation.description || '';
+        if (currentLocation.description) {
             modalSelectedLocationDiv.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent body scroll
+        } else {
+            modalSelectedLocationDiv.classList.add('hidden');
         }
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on input when modal opens
+        setTimeout(() => {
+            modalLocationInput.focus();
+        }, 100);
+    }
 
-        function closeLocationModal() {
-            locationModal.classList.remove('active');
-            locationSuggestions.classList.add('hidden');
-            document.body.style.overflow = ''; // Restore body scroll
-        }
-        
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
+    function closeLocationModal() {
+        locationModal.classList.remove('active');
+        locationSuggestions.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
                 clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+                func(...args);
             };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    const debouncedLocationSearch = debounce(async (value) => {
+        if (value.length < 2) {
+            locationSuggestions.innerHTML = '';
+            locationSuggestions.classList.add('hidden');
+            return;
         }
         
-        const debouncedLocationSearch = debounce(async (value) => {
-            if (value.length < 2) {
-                locationSuggestions.innerHTML = '';
-                locationSuggestions.classList.add('hidden');
-                return;
-            }
+        // Show loading
+        locationSuggestions.innerHTML = '<div class="suggestion-loading"><div class="loading" style="width: 20px; height: 20px; border-width: 2px;"></div> Searching...</div>';
+        locationSuggestions.classList.remove('hidden');
+        
+        try {
+            // Use default coordinates for initial search
+            const searchLat = currentLocation.lat || 28.4838282;
+            const searchLng = currentLocation.lng || 77.0028522;
             
-            // Show loading
-            locationSuggestions.innerHTML = '<div class="suggestion-loading"><div class="loading" style="width: 20px; height: 20px; border-width: 2px;"></div> Searching...</div>';
-            locationSuggestions.classList.remove('hidden');
+            const url = `/location-search?q=${encodeURIComponent(value)}&lat=${searchLat}&lng=${searchLng}`;
+            const resp = await fetch(url);
+            const data = await resp.json();
             
-            try {
-                const url = `/location-search?q=${encodeURIComponent(value)}&lat=${currentLocation.lat}&lng=${currentLocation.lng}`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                
-                if (data.info?.status === 'success' && data.data && data.data.length > 0) {
-                    locationSuggestions.innerHTML = data.data.map(item => `
-                        <div class="p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 text-white flex items-center justify-between" onclick="selectLocation('${item.placeId}', '${item.description.replace(/'/g, "\\'")}', ${item.lat || currentLocation.lat}, ${item.lng || currentLocation.lng}, '${item.pincode || ''}')">
-                            <div>
-                                <div class="font-medium">${item.name || item.description}</div>
-                                <div class="text-gray-400 text-sm mt-1">${item.description}</div>
-                                ${item.pincode ? `<div class="text-purple-400 text-xs">${item.pincode}</div>` : ''}
-                            </div>
-                            <i class="fas fa-map-marker-alt text-purple-400 text-sm"></i>
+            if (data.info?.status === 'success' && data.data && data.data.length > 0) {
+                locationSuggestions.innerHTML = data.data.map(item => `
+                    <div class="suggestion-item p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 text-white flex items-center justify-between" 
+                         data-placeid="${item.placeId}" 
+                         data-desc="${item.description.replace(/"/g, '&quot;')}" 
+                         data-pincode="${item.pincode || ''}">
+                        <div>
+                            <div class="font-medium">${item.name || item.description}</div>
+                            <div class="text-gray-400 text-sm mt-1">${item.description}</div>
+                            ${item.pincode ? `<div class="text-purple-400 text-xs">${item.pincode}</div>` : ''}
                         </div>
-                    `).join('');
-                } else {
-                    locationSuggestions.innerHTML = '<div class="p-3 text-gray-400 text-center">No locations found</div>';
-                }
-            } catch (err) {
-                console.error('Location search error:', err);
-                locationSuggestions.innerHTML = '<div class="p-3 text-red-400 text-center">Error loading locations</div>';
+                        <i class="fas fa-map-marker-alt text-purple-400 text-sm"></i>
+                    </div>
+                `).join('');
+            } else {
+                locationSuggestions.innerHTML = '<div class="p-3 text-gray-400 text-center">No locations found</div>';
             }
-        }, 200); // Faster debounce for realtime feel
-        
-        modalLocationInput.addEventListener('input', (e) => {
-            const value = e.target.value;
-            if (value === currentLocation.description) {
-                // If typing the current, don't search
-                locationSuggestions.classList.add('hidden');
-                return;
-            }
-            debouncedLocationSearch(value);
-        });
-        
-        modalLocationInput.addEventListener('focus', () => {
-            if (modalLocationInput.value.length >= 2 && modalLocationInput.value !== currentLocation.description) {
-                debouncedLocationSearch(modalLocationInput.value);
-            }
-        });
-        
-        // Blur handler to prevent invalid selection
-        modalLocationInput.addEventListener('blur', (e) => {
-            setTimeout(() => {
-                if (locationSuggestions.contains(document.activeElement)) {
-                    return; // Still in dropdown
-                }
-                if (modalLocationInput.value !== currentLocation.description && !isLocationSelected) {
-                    // Revert if invalid
-                    modalLocationInput.value = currentLocation.description;
-                }
-                locationSuggestions.classList.add('hidden');
-            }, 150);
-        });
-        
-        window.selectLocation = function(placeId, desc, lat, lng, pin) {
+        } catch (err) {
+            console.error('Location search error:', err);
+            locationSuggestions.innerHTML = '<div class="p-3 text-red-400 text-center">Error loading locations</div>';
+        }
+    }, 300);
+    
+    // Event listener for suggestion items using event delegation
+    locationSuggestions.addEventListener('click', (e) => {
+        const suggestionItem = e.target.closest('.suggestion-item');
+        if (suggestionItem) {
+            const placeId = suggestionItem.dataset.placeid;
+            const desc = suggestionItem.dataset.desc;
+            const pincode = suggestionItem.dataset.pincode;
+            selectLocation(placeId, desc, pincode);
+        }
+    });
+    
+    modalLocationInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        debouncedLocationSearch(value);
+    });
+    
+    modalLocationInput.addEventListener('focus', () => {
+        if (modalLocationInput.value.length >= 2) {
+            debouncedLocationSearch(modalLocationInput.value);
+        }
+    });
+    
+    // Handle location selection
+    async function selectLocation(placeId, desc, pin) {
+        try {
+            // Update current location immediately with the selected description
             currentLocation = {
-                placeId,
+                placeId: placeId,
                 description: desc,
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                pincode: pin || currentLocation.pincode
+                lat: currentLocation.lat, // temporary, will update below
+                lng: currentLocation.lng, // temporary, will update below  
+                pincode: pin || ''
             };
-            modalLocationInput.value = desc.split(',')[0].trim() || desc; // Show short name
-            isLocationSelected = true;
+            
+            // Update UI immediately
+            updateSelectedLocation();
             locationSuggestions.classList.add('hidden');
+            
+            // Fetch coordinates for the selected location
+            console.log('Fetching coordinates for:', desc);
+            const coordsResp = await fetch(`/get-coords?desc=${encodeURIComponent(desc)}`);
+            if (coordsResp.ok) {
+                const coordsData = await coordsResp.json();
+                currentLocation.lat = coordsData.lat;
+                currentLocation.lng = coordsData.lng;
+                console.log('Location updated successfully:', {
+                    description: desc,
+                    lat: currentLocation.lat,
+                    lng: currentLocation.lng,
+                    pincode: pin
+                });
+            } else {
+                console.warn('Failed to fetch coordinates, using defaults');
+                // Fallback to default coordinates if geocoding fails
+                currentLocation.lat = 28.4838282;
+                currentLocation.lng = 77.0028522;
+            }
+            
+            closeLocationModal();
+            
+        } catch (err) {
+            console.error('Error in selectLocation:', err);
+            // Even if there's an error, we still update the description
             updateSelectedLocation();
             closeLocationModal();
-        };
-        
-        // Event listeners for modal
-        changeLocationBtn.addEventListener('click', openModal);
-        closeModal.addEventListener('click', closeLocationModal);
-        locationModal.addEventListener('click', (e) => {
-            if (e.target === locationModal) {
-                closeLocationModal();
-            }
-        });
-        
-        // Initialize location
-        updateSelectedLocation();
-        
-        // Hide suggestions on click outside
-        document.addEventListener('click', (e) => {
-            if (!modalLocationInput.contains(e.target) && !locationSuggestions.contains(e.target) && locationModal.classList.contains('active')) {
-                locationSuggestions.classList.add('hidden');
-                // If value changed without selection, revert
-                if (modalLocationInput.value !== (currentLocation.description.split(',')[0].trim() || currentLocation.description)) {
-                    modalLocationInput.value = currentLocation.description.split(',')[0].trim() || currentLocation.description;
-                }
-            }
-        });
-        
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const mainContent = document.getElementById('mainContent');
-        const loadingState = document.getElementById('loadingState');
-        const resultsSection = document.getElementById('resultsSection');
-        const errorState = document.getElementById('errorState');
-        const emptyState = document.getElementById('emptyState');
-        const productsContainer = document.getElementById('productsContainer');
-        const searchQuerySpan = document.getElementById('searchQuery');
-        const productCountSpan = document.getElementById('productCount');
-        const errorMessage = document.getElementById('errorMessage');
-        const footer = document.getElementById('footer');
+        }
+    }
+    
+    // Event listeners for modal
+    changeLocationBtn.addEventListener('click', openModal);
+    closeModal.addEventListener('click', closeLocationModal);
+    locationModal.addEventListener('click', (e) => {
+        if (e.target === locationModal) {
+            closeLocationModal();
+        }
+    });
+    
+    // Initialize with empty location
+    initializeLocation();
+    
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const mainContent = document.getElementById('mainContent');
+    const loadingState = document.getElementById('loadingState');
+    const resultsSection = document.getElementById('resultsSection');
+    const errorState = document.getElementById('errorState');
+    const emptyState = document.getElementById('emptyState');
+    const productsContainer = document.getElementById('productsContainer');
+    const searchQuerySpan = document.getElementById('searchQuery');
+    const productCountSpan = document.getElementById('productCount');
+    const errorMessage = document.getElementById('errorMessage');
+    const footer = document.getElementById('footer');
 
-        // Quick search buttons
-        document.querySelectorAll('.quick-search').forEach(btn => {
-            btn.addEventListener('click', () => {
-                searchInput.value = btn.textContent;
-                performSearch();
+    // Quick search buttons
+    document.querySelectorAll('.quick-search').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!isLocationSelected) {
+                alert('Please select a location first');
+                openModal();
+                return;
+            }
+            searchInput.value = btn.textContent;
+            performSearch();
+        });
+    });
+
+    // Search button click
+    searchBtn.addEventListener('click', performSearch);
+
+    // Enter key press
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function hideAllStates() {
+        loadingState.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+        errorState.classList.add('hidden');
+        emptyState.classList.add('hidden');
+    }
+
+    function switchToNormalLayout() {
+        mainContent.classList.remove('centered-layout');
+        mainContent.classList.add('normal-layout');
+        footer.classList.remove('hidden');
+    }
+
+    function switchToCenteredLayout() {
+        mainContent.classList.remove('normal-layout');
+        mainContent.classList.add('centered-layout');
+        footer.classList.add('hidden');
+    }
+
+    async function performSearch() {
+        const query = searchInput.value.trim();
+        
+        if (!query) {
+            alert('Please enter a search term');
+            return;
+        }
+
+        // Check if location is selected
+        if (!isLocationSelected || !currentLocation.lat || !currentLocation.lng) {
+            alert('Please select a valid location first');
+            openModal();
+            return;
+        }
+
+        hideAllStates();
+        switchToNormalLayout();
+        loadingState.classList.remove('hidden');
+
+        try {
+            console.log('Making search request with location:', {
+                lat: currentLocation.lat,
+                lng: currentLocation.lng,
+                pincode: currentLocation.pincode
             });
+            
+            const url = `/search?query=${encodeURIComponent(query)}&lat=${currentLocation.lat}&lng=${currentLocation.lng}&pincode=${currentLocation.pincode || '122006'}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch data');
+            }
+
+            displayResults(data, query);
+        } catch (error) {
+            console.error('Search error:', error);
+            hideAllStates();
+            errorState.classList.remove('hidden');
+            errorMessage.textContent = error.message;
+        }
+    }
+
+    function displayResults(data, query) {
+        hideAllStates();
+
+        if (!data.products || data.products.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        searchQuerySpan.textContent = query;
+        productCountSpan.textContent = data.products.length;
+        productsContainer.innerHTML = '';
+
+        data.products.forEach(product => {
+            const productElement = createProductCard(product);
+            productsContainer.appendChild(productElement);
         });
 
-        // Search button click
-        searchBtn.addEventListener('click', performSearch);
+        resultsSection.classList.remove('hidden');
+    }
 
-        // Enter key press
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
+    function createProductCard(product) {
+        const div = document.createElement('div');
+        div.className = 'product-card rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow';
 
-        function hideAllStates() {
-            loadingState.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            errorState.classList.add('hidden');
-            emptyState.classList.add('hidden');
-        }
-
-        function switchToNormalLayout() {
-            mainContent.classList.remove('centered-layout');
-            mainContent.classList.add('normal-layout');
-            footer.classList.remove('hidden');
-        }
-
-        function switchToCenteredLayout() {
-            mainContent.classList.remove('normal-layout');
-            mainContent.classList.add('centered-layout');
-            footer.classList.add('hidden');
-        }
-
-        async function performSearch() {
-            const query = searchInput.value.trim();
+        const imageUrl = product.image_url || '';
+        const name = product.name || 'Unknown Product';
+        const platforms = product.platforms || [];
+        
+        const compareBtn = platforms.length > 1 ? `
+            <button class="absolute top-3 right-3 bg-white/90 hover:bg-white px-3 py-1.5 rounded-lg text-sm font-medium text-gray-800 shadow-lg transition">
+                <i class="fas fa-plus mr-1"></i> Compare
+            </button>
+        ` : '';
+        
+        div.innerHTML = `
+            <div class="relative">
+                ${imageUrl ? `
+                    <div class="h-48 bg-gray-900 flex items-center justify-center p-4">
+                        <img src="${imageUrl}" 
+                             alt="${name}" 
+                             class="max-h-full max-w-full object-contain"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23111%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    </div>
+                ` : `
+                    <div class="h-48 bg-gray-900 flex items-center justify-center">
+                        <i class="fas fa-box text-gray-600 text-4xl"></i>
+                    </div>
+                `}
+                ${compareBtn}
+            </div>
             
-            if (!query) {
-                alert('Please enter a search term');
-                return;
-            }
-
-            // Ensure location is set
-            if (!isLocationSelected || !currentLocation.lat || !currentLocation.lng) {
-                alert('Please select a valid location first');
-                return;
-            }
-
-            hideAllStates();
-            switchToNormalLayout();
-            loadingState.classList.remove('hidden');
-
-            try {
-                const url = `/search?query=${encodeURIComponent(query)}&lat=${currentLocation.lat}&lng=${currentLocation.lng}&pincode=${currentLocation.pincode}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to fetch data');
-                }
-
-                displayResults(data, query);
-            } catch (error) {
-                console.error('Search error:', error);
-                hideAllStates();
-                errorState.classList.remove('hidden');
-                errorMessage.textContent = error.message;
-            }
-        }
-
-        function displayResults(data, query) {
-            hideAllStates();
-
-            if (!data.products || data.products.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
-
-            searchQuerySpan.textContent = query;
-            productCountSpan.textContent = data.products.length;
-            productsContainer.innerHTML = '';
-
-            data.products.forEach(product => {
-                const productElement = createProductCard(product);
-                productsContainer.appendChild(productElement);
-            });
-
-            resultsSection.classList.remove('hidden');
-        }
-
-        function createProductCard(product) {
-            const div = document.createElement('div');
-            div.className = 'product-card rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow';
-
-            const imageUrl = product.image_url || '';
-            const name = product.name || 'Unknown Product';
-            const platforms = product.platforms || [];
-            
-            const compareBtn = platforms.length > 1 ? `
-                <button class="absolute top-3 right-3 bg-white/90 hover:bg-white px-3 py-1.5 rounded-lg text-sm font-medium text-gray-800 shadow-lg transition">
-                    <i class="fas fa-plus mr-1"></i> Compare
-                </button>
-            ` : '';
-            
-            div.innerHTML = `
-                <div class="relative">
-                    ${imageUrl ? `
-                        <div class="h-48 bg-gray-900 flex items-center justify-center p-4">
-                            <img src="${imageUrl}" 
-                                 alt="${name}" 
-                                 class="max-h-full max-w-full object-contain"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23111%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                        </div>
-                    ` : `
-                        <div class="h-48 bg-gray-900 flex items-center justify-center">
-                            <i class="fas fa-box text-gray-600 text-4xl"></i>
-                        </div>
-                    `}
-                    ${compareBtn}
+            <div class="p-6">
+                <h3 class="text-white font-semibold text-lg mb-3 line-clamp-2" title="${name}">${name}</h3>
+                
+                <div class="space-y-3">
+                    ${platforms.map((platform, index) => createPlatformRow(platform, index === 0)).join('')}
                 </div>
                 
-                <div class="p-6">
-                    <h3 class="text-white font-semibold text-lg mb-3 line-clamp-2" title="${name}">${name}</h3>
-                    
-                    <div class="space-y-3">
-                        ${platforms.map((platform, index) => createPlatformRow(platform, index === 0)).join('')}
-                    </div>
-                    
-                    ${platforms.length > 0 ? `
-                        <div class="mt-4 pt-3 border-t border-white/10">
-                            <div class="text-sm text-gray-300 flex justify-between">
-                                <span>Available at ${platforms.length} stores</span>
-                                <span class="font-medium text-green-400">Cheapest: ₹${Math.min(...platforms.filter(p => p.in_stock).map(p => p.price)).toFixed(2)}</span>
-                            </div>
+                ${platforms.length > 0 ? `
+                    <div class="mt-4 pt-3 border-t border-white/10">
+                        <div class="text-sm text-gray-300 flex justify-between">
+                            <span>Available at ${platforms.length} stores</span>
+                            <span class="font-medium text-green-400">Cheapest: ₹${Math.min(...platforms.filter(p => p.in_stock).map(p => p.price)).toFixed(2)}</span>
                         </div>
-                    ` : ''}
-                </div>
-            `;
-
-            return div;
-        }
-
-        function createPlatformRow(platform, isFirst) {
-            const price = platform.price || 0;
-            const formattedPrice = `₹${price.toFixed(2)}`;
-            const unit = platform.unit || '';
-            const mrp = platform.mrp || price;
-            const hasDiscount = mrp > price;
-            const discount = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0;
-            const isMyShop = platform.is_my_shop || false;
-            const inStock = platform.in_stock !== false;
-            const isCheapest = platform.is_cheapest || false;
-            
-            const platformColors = {
-                'Blinkit': 'bg-orange-500',
-                'Instamart': 'bg-red-500',
-                'Zepto': 'bg-purple-600',
-                'Bigbasket': 'bg-green-500',
-                'Dmart': 'bg-blue-600',
-                'Jiomart': 'bg-indigo-600',
-                'Flipkart Minutes': 'bg-pink-500'
-            };
-            
-            const platformColor = platformColors[platform.source] || 'bg-gray-500';
-            const badgeClass = isCheapest ? 'bg-green-100 text-green-800 border-green-300' : 
-                              isMyShop ? 'bg-purple-100 text-purple-800 border-purple-300' : 
-                              'bg-gray-100 text-gray-800 border-gray-300';
-            const badgeText = isCheapest ? '<i class="fas fa-crown text-xs mr-1"></i>Cheapest!' : 
-                          isMyShop ? '<i class="fas fa-heart text-xs mr-1"></i>Your Shop' : '';
-            
-            const mrpHtml = hasDiscount ? `<span class="text-xs text-gray-400 line-through ml-1">₹${mrp.toFixed(2)}</span>` : '';
-            const discountHtml = hasDiscount ? `<span class="text-xs text-green-600 font-medium ml-1">${discount}% OFF</span>` : '';
-            
-            return `
-                <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition border border-white/10 ${!inStock ? 'opacity-60' : ''}">
-                    <div class="flex items-center space-x-3 flex-1">
-                        <span class="px-3 py-1 rounded-md text-xs font-bold text-white ${platformColor}">
-                            ${platform.source}
-                        </span>
-                        ${isCheapest || isMyShop ? `<span class="px-2 py-1 rounded-md text-xs font-semibold border ${badgeClass}">${badgeText}</span>` : ''}
                     </div>
-                    
-                    <div class="text-right">
-                        <div class="text-lg font-bold text-white mb-1">${formattedPrice}${mrpHtml}${discountHtml}</div>
-                        ${unit ? `<div class="text-xs text-gray-400">${unit}</div>` : ''}
-                        ${!inStock ? '<div class="text-xs text-red-400 mt-1">Out of Stock</div>' : ''}
-                    </div>
-                    
-                    <button class="ml-3 p-2 text-gray-400 hover:text-white transition rounded-full hover:bg-white/10">
-                        <i class="fas fa-external-link-alt"></i>
-                    </button>
-                </div>
-            `;
-        }
+                ` : ''}
+            </div>
+        `;
+
+        return div;
+    }
+
+    function createPlatformRow(platform, isFirst) {
+        const price = platform.price || 0;
+        const formattedPrice = `₹${price.toFixed(2)}`;
+        const unit = platform.unit || '';
+        const mrp = platform.mrp || price;
+        const hasDiscount = mrp > price;
+        const discount = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0;
+        const isMyShop = platform.is_my_shop || false;
+        const inStock = platform.in_stock !== false;
+        const isCheapest = platform.is_cheapest || false;
         
-        // Generate twinkling stars
-        const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 200; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            star.style.animation = `twinkle ${2 + Math.random() * 3}s infinite ${Math.random() * 2}s`;
-            starsContainer.appendChild(star);
-        }
-    </script>
+        const platformColors = {
+            'Blinkit': 'bg-orange-500',
+            'Instamart': 'bg-red-500',
+            'Zepto': 'bg-purple-600',
+            'Bigbasket': 'bg-green-500',
+            'Dmart': 'bg-blue-600',
+            'Jiomart': 'bg-indigo-600',
+            'Flipkart Minutes': 'bg-pink-500'
+        };
+        
+        const platformColor = platformColors[platform.source] || 'bg-gray-500';
+        const badgeClass = isCheapest ? 'bg-green-100 text-green-800 border-green-300' : 
+                          isMyShop ? 'bg-purple-100 text-purple-800 border-purple-300' : 
+                          'bg-gray-100 text-gray-800 border-gray-300';
+        const badgeText = isCheapest ? '<i class="fas fa-crown text-xs mr-1"></i>Cheapest!' : 
+                      isMyShop ? '<i class="fas fa-heart text-xs mr-1"></i>Your Shop' : '';
+        
+        const mrpHtml = hasDiscount ? `<span class="text-xs text-gray-400 line-through ml-1">₹${mrp.toFixed(2)}</span>` : '';
+        const discountHtml = hasDiscount ? `<span class="text-xs text-green-600 font-medium ml-1">${discount}% OFF</span>` : '';
+        
+        return `
+            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition border border-white/10 ${!inStock ? 'opacity-60' : ''}">
+                <div class="flex items-center space-x-3 flex-1">
+                    <span class="px-3 py-1 rounded-md text-xs font-bold text-white ${platformColor}">
+                        ${platform.source}
+                    </span>
+                    ${isCheapest || isMyShop ? `<span class="px-2 py-1 rounded-md text-xs font-semibold border ${badgeClass}">${badgeText}</span>` : ''}
+                </div>
+                
+                <div class="text-right">
+                    <div class="text-lg font-bold text-white mb-1">${formattedPrice}${mrpHtml}${discountHtml}</div>
+                    ${unit ? `<div class="text-xs text-gray-400">${unit}</div>` : ''}
+                    ${!inStock ? '<div class="text-xs text-red-400 mt-1">Out of Stock</div>' : ''}
+                </div>
+                
+                <button class="ml-3 p-2 text-gray-400 hover:text-white transition rounded-full hover:bg-white/10">
+                    <i class="fas fa-external-link-alt"></i>
+                </button>
+            </div>
+        `;
+    }
+    
+    // Generate twinkling stars
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 200; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.animation = `twinkle ${2 + Math.random() * 3}s infinite ${Math.random() * 2}s`;
+        starsContainer.appendChild(star);
+    }
+</script>
 </body>
 </html>
