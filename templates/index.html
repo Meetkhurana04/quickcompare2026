@@ -1,68 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCompare - Find Best Prices</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>QuickCompare - Price Comparison Made Easy</title>
     <style>
+        :root{
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.16);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --text: #e9ecf1;
+            --muted: #a8b1c2;
+            --accent1: #8b5cf6;
+            --accent2: #60a5fa;
+            --nav-h: 64px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #000;
+            color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
         }
-        
-        /* Gradient background effect */
+
         .gradient-bg {
             position: fixed;
-            top: 0;
-            right: 0;
-            width: 60%;
-            height: 100%;
+            top: -10%;
+            right: -10%;
+            width: 70%;
+            height: 120%;
             background: radial-gradient(
-                circle at right,
+                circle at 80% 30%,
                 rgba(147, 51, 234, 0.25) 0%,
-                rgba(59, 130, 246, 0.15) 25%,
-                rgba(147, 51, 234, 0.05) 50%,
+                rgba(59, 130, 246, 0.18) 25%,
+                rgba(147, 51, 234, 0.06) 50%,
                 transparent 70%
             );
-            z-index: 0;
             filter: blur(60px);
-        }
-        
-        /* Stars container */
-        .stars {
-            position: fixed;
-            width: 100%;
-            height: 100%;
             z-index: 0;
             pointer-events: none;
         }
-        
-        /* Star animation */
-        @keyframes twinkle {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
         }
-        
+        @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:1} }
         .star {
             position: absolute;
-            width: 2px;
-            height: 2px;
+            width: 2px; height: 2px;
             background: white;
             border-radius: 50%;
             filter: blur(0.5px);
         }
-        
-        /* Large background text */
+        .shooting-star {
+            position: absolute;
+            width: 120px; height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+            transform: rotate(-25deg);
+            opacity: 0;
+            animation: shoot 2.2s ease-in-out forwards;
+        }
+        @keyframes shoot {
+            0% { opacity: 0; transform: translate3d(0,0,0) rotate(-25deg); }
+            10% { opacity: 1; }
+            100% { opacity: 0; transform: translate3d(-60vw, 40vh, 0) rotate(-25deg); }
+        }
+
         .background-text {
             position: fixed;
-            top: 20%;
+            top: 18%;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20vw;
+            font-size: clamp(64px, 20vw, 240px);
             font-weight: 800;
             letter-spacing: -0.02em;
             white-space: nowrap;
@@ -73,831 +90,1189 @@
                 to right,
                 rgba(40, 40, 40, 0.5) 0%,
                 rgba(80, 80, 80, 0.8) 50%,
-                rgba(147, 51, 234, 0.3) 100%
+                rgba(147, 51, 234, 0.35) 100%
             );
             -webkit-background-clip: text;
             background-clip: text;
-            text-shadow: 
-                0 0 40px rgba(147, 51, 234, 0.1),
-                0 0 80px rgba(147, 51, 234, 0.05);
+            text-shadow:
+                0 0 40px rgba(147, 51, 234, 0.08),
+                0 0 80px rgba(147, 51, 234, 0.04);
         }
-        
-        /* Content wrapper */
-        .content-wrapper {
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: saturate(180%) blur(18px);
+            -webkit-backdrop-filter: saturate(180%) blur(18px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .navbar.glass { background: rgba(15, 17, 25, 0.5); }
+        .navbar h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.2px;
+        }
+
+        .container {
             position: relative;
-            z-index: 1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Centered layout for initial state */
-        .centered-layout {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 2rem 1rem;
+            min-height: calc(100vh - 120px);
+            
         }
-        
-        /* Normal layout for results */
-        .normal-layout {
-            flex: 1;
-            padding-top: 2rem;
+
+        .hero { 
+            margin-top: -15px;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 2rem;
+            transition: all 0.4s ease;
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        /* Glassmorphism for cards */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 8px 32px 0 rgba(0, 0, 0, 0.37),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+        .hero h2 {
+            font-size: clamp(1.6rem, 3vw, 2.5rem);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
         }
-        
-        /* Search box glassmorphism */
-        .glass-search {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--muted);
         }
-        
-        .glass-search:focus {
-            border-color: rgba(147, 51, 234, 0.5);
-            box-shadow: 
-                0 0 20px rgba(147, 51, 234, 0.2),
-                0 0 40px rgba(147, 51, 234, 0.1);
-            background: rgba(30, 30, 30, 0.8);
-        }
-        
-        .product-card {
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 
-                0 20px 40px rgba(147, 51, 234, 0.2),
-                0 10px 20px rgba(0, 0, 0, 0.3);
-            border-color: rgba(147, 51, 234, 0.3);
-        }
-        
-        .my-shop-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
+        .hero.compact { 
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transform: translateY(-20px);
+            height: 0;
             overflow: hidden;
         }
-        
-        /* Keep placeholder text light */
-        ::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+
+        .search-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+
+        .search-wrapper.compact {
+            position: sticky;
+            top: calc(var(--nav-h) + 8px);
+            z-index: 90;
+            flex-direction: row;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        .search-item {
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(15, 17, 25, 0.5);
+            backdrop-filter: saturate(180%) blur(18px);
+            -webkit-backdrop-filter: saturate(180%) blur(18px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            flex: 1;
         }
-        
-        /* Apple-style navbar */
-        .navbar {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+
+        .search-wrapper.compact .search-item {
+            padding: 0.6rem 0.85rem;
+            border-radius: 12px;
+        }
+
+        .search-wrapper.compact .search-item:first-child {
+            flex: 0 0 auto;
+            min-width: 200px;
+        }
+
+        .search-wrapper.compact .search-item:nth-child(2) {
+            flex: 1;
+        }
+
+        .input-group {
             transition: all 0.3s ease;
         }
-        
-        .logo-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
             font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        /* Loading spinner for suggestions */
-        .suggestion-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
+            color: var(--muted);
+            margin-bottom: 0.45rem;
             transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
             opacity: 1;
-            visibility: visible;
+            max-height: 20px;
         }
 
-        .modal-content {
-            background: #1a1a1a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 2rem;
-            width: 80%;
-            max-width: 80%;
-            height: 80vh;
-            max-height: 80vh;
-            overflow-y: auto;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
+        .search-wrapper.compact .input-group label {
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+            overflow: hidden;
         }
 
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-header {
+        .location-display {
+            border-radius: 12px;
+            padding: 0.85rem 0.9rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--glass-border);
         }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
+        .search-wrapper.compact .location-display {
+            padding: 0.55rem 0.7rem;
+            font-size: 0.85rem;
+            border-radius: 10px;
         }
 
-        .close-modal {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
+        .location-display:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(255,255,255,0.08);
         }
+        .location-display.selected { background: rgba(99, 102, 241, 0.08); }
+        .location-text { color: #9aa3b2; }
+        .location-text.selected { color: var(--text); font-weight: 600; }
 
-        .close-modal:hover {
-            color: white;
-        }
-
-        .location-indicator {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .location-indicator:hover {
-            border-color: rgba(147, 51, 234, 0.3);
-            box-shadow: 0 0 20px rgba(147, 51, 234, 0.1);
-        }
-
-        .change-location-btn {
+        .change-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 8px;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .search-wrapper.compact .change-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .change-btn:hover { transform: translateY(-1px); }
+
+        .search-input-row {
             display: flex;
+            gap: 0.7rem;
+            align-items: flex-end;
+            transition: all 0.3s ease;
+        }
+
+        .search-wrapper.compact .search-input-row {
             align-items: center;
             gap: 0.5rem;
         }
 
-        .change-location-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        .search-input-row .input-group {
+            flex: 1;
         }
 
-        /* Remove stacking context on content wrapper so dropdown can appear above header */
-        .content-wrapper {
-            z-index: auto !important;
+        input[type="text"] {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: saturate(180%) blur(14px);
         }
 
+        .search-wrapper.compact input[type="text"] {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.85rem;
+            border-radius: 10px;
+        }
+
+        input[type="text"]::placeholder { color: #9aa3b2; }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.18);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        input[type="text"]:disabled {
+            background: rgba(255,255,255,0.04);
+            color: #8b8f99;
+            cursor: not-allowed;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            white-space: nowrap;
+        }
+
+        .search-wrapper.compact .search-btn {
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            border-radius: 10px;
+        }
+
+        .search-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 768px) {
+            .search-wrapper.compact {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+
+            .search-wrapper.compact .search-item:first-child {
+                min-width: auto;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal.active {
+            display: flex;
+            justify-content: center; align-items: center;
+        }
+        @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+
+        .modal-content {
+            width: 80%;
+            height: 80%;
+            max-width: 900px;
+            max-height: 700px;
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+            animation: slideUp 0.25s ease;
+            background: rgba(15, 17, 25, 0.95);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: saturate(180%) blur(20px);
+            display: flex;
+            flex-direction: column;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.4rem; color: var(--text); }
+        .close-btn {
+            background: none; border: none; font-size: 1.8rem; cursor: pointer;
+            color: #a9b0be;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: #fff; }
+
+        .modal-search {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-search input[type="text"] {
+            width: 100%;
+        }
+        .suggestions {
+            flex: 1;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+        }
+        .suggestion-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: var(--text);
+        }
+        .suggestion-item:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.2rem;
+            animation: fadeIn 0.5s ease;
+        }
+        @media (max-width: 768px) {
+            .results { grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+        }
+        @media (max-width: 480px) { .results { grid-template-columns: 1fr; } }
+
+        .product-card {
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .product-image {
+            width: 100%; height: 200px; object-fit: cover;
+            background: rgba(255,255,255,0.04);
+        }
+        .product-image-placeholder {
+            width: 100%; height: 200px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.08) 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #9aa3b2; font-size: 0.9rem;
+        }
+
+        .product-info { padding: 1rem; }
+        .product-name {
+            font-size: 0.98rem; font-weight: 700; color: var(--text);
+            margin-bottom: 0.4rem;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            min-height: 40px;
+        }
+        .product-brand { 
+            font-size: 0.82rem; 
+            color: var(--muted); 
+            margin-bottom: 0.8rem; 
+        }
+
+        .source-tags { display: none; }
+
+        .source-tag {
+            display: inline-block; 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 6px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            color: white;
+            mix-blend-mode: normal;
+        }
+        .source-tag.blinkit { background: #f8cb46; color: #333; }
+        .source-tag.instamart { background: #f77f00; }
+        .source-tag.zepto { background: #e21b70; }
+        .source-tag.bigbasket { background: #84c225; }
+        .source-tag.flipkartminutes { background: #2874f0; }
+        .source-tag.jiomart { background: #0a6eb4; }
+        .source-tag.dmart { background: #1c458a; }
+
+        .price-info { 
+            border-top: 1px solid rgba(255,255,255,0.08); 
+            padding-top: 0.8rem; 
+        }
+        .variant-row { margin-bottom: 1rem; }
+        .variant-label {
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            color: #a5b4fc; 
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.3px;
+        }
+        .price-row {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 0.5rem 0; 
+            font-size: 0.86rem;
+            gap: 0.5rem;
+        }
+        .price-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+        .price-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .price-amount { 
+            font-weight: 800; 
+            color: #ffffff; 
+            letter-spacing: 0.2px; 
+        }
+        .price-link { 
+            text-decoration: none; 
+            font-size: 1rem; 
+            width: 20px;
+            text-align: center;
+        }
+
+        .price-link a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .crown-icon {
+            font-size: 0.9rem;
+            margin-left: 0.3rem;
+        }
+
+        .footer {
+            position: relative;
+            z-index: 2;
+            margin-top: 3rem;
+            text-align: center;
+            padding: 1.2rem 1rem;
+            border-top-left-radius: 14px; border-top-right-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: rgba(15, 17, 25, 0.5);
+            backdrop-filter: saturate(180%) blur(12px);
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+        .footer strong {
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loading { text-align: center; padding: 3rem; color: var(--text); }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid white;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+
+        .no-results {
+            text-align: center; padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(14px);
+            color: var(--muted);
+        }
+        .no-results h3 { margin-bottom: 0.5rem; color: var(--text); }
     </style>
 </head>
 <body>
-    <!-- Background Effects -->
     <div class="gradient-bg"></div>
     <div class="stars" id="stars"></div>
-    <div class="background-text">SMART</div>
-    
-    <!-- Content Wrapper -->
-    <div class="content-wrapper">
-        <!-- Header - Thin & Classy Apple Style -->
-        <header class="navbar sticky top-0 z-50">
-            <div class="container mx-auto px-6 py-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                            <i class="fas fa-chart-line text-white text-sm"></i>
-                        </div>
-                        <span class="logo-text text-xl font-semibold">SmartCompare</span>
-                    </div>
-                    <div class="text-gray-400 text-sm">
-                        Search across multiple stores to find the best deals
+    <div class="background-text" id="bgText">QUICKCOMPARE</div>
+
+    <div class="navbar glass">
+        <h1>QuickCompare</h1>
+    </div>
+
+    <div class="container">
+        <div class="hero" id="hero">
+            <h2>Compare Prices Instantly</h2>
+            <p>Find the best deals across Blinkit, Instamart, Zepto, BigBasket, and more</p>
+        </div>
+
+        <div class="search-wrapper" id="searchWrapper">
+            <div class="search-item">
+                <div class="input-group">
+                    <label>Delivery Location</label>
+                    <div class="location-display" id="locationDisplay" onclick="openLocationModal()">
+                        <span class="location-text" id="locationText">Select your location</span>
+                        <button class="change-btn">Select</button>
                     </div>
                 </div>
             </div>
-        </header>
 
-        <!-- Main Content Area -->
-        <div id="mainContent" class="centered-layout">
-            <div class="container mx-auto px-2">
-                <!-- Search Section -->
-                <div id="searchSection" class="max-w-3xl mx-auto">
-                    <!-- Location Indicator -->
-                    <div id="locationIndicator" class="location-indicator text-white flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-map-marker-alt mr-2 text-purple-400"></i>
-                            <span id="selectedLocationText"></span>
-                        </div>
-                        <button id="changeLocationBtn" class="change-location-btn">
-                            <i class="fas fa-edit"></i>
-                            Change
-                        </button>
+            <div class="search-item">
+                <div class="search-input-row">
+                    <div class="input-group">
+                        <label>Search Product</label>
+                        <input 
+                            type="text" 
+                            id="productInput" 
+                            placeholder="e.g., atta, rice, milk" 
+                            disabled
+                        >
                     </div>
-                    
-                    <div class="glass-card rounded-2xl shadow-xl p-6" id="searchbox">
-                        <div class="relative">
-                            <input 
-                                type="text" 
-                                id="searchInput" 
-                                placeholder="Search for groceries (e.g., atta, rice, oil)..."
-                                class="glass-search w-full px-6 py-4 text-lg text-white rounded-xl focus:outline-none transition pr-32"
-                            >
-                            <button 
-                                id="searchBtn"
-                                class="absolute right-2 top-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition font-medium"
-                            >
-                                <i class="fas fa-search mr-2"></i>Search
-                            </button>
-                        </div>
-                        <div class="mt-4 flex flex-wrap gap-2 justify-center">
-                            <span class="text-sm text-gray-400">Popular:</span>
-                            <button class="quick-search px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition text-white border border-white/20">atta</button>
-                            <button class="quick-search px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition text-white border border-white/20">rice</button>
-                            <button class="quick-search px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition text-white border border-white/20">oil</button>
-                            <button class="quick-search px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition text-white border border-white/20">dal</button>
-                            <button class="quick-search px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition text-white border border-white/20">sugar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Loading State -->
-                <div id="loadingState" class="hidden text-center py-12">
-                    <div class="loading mx-auto mb-4" style="width: 50px; height: 50px; border-width: 5px;"></div>
-                    <p class="text-white text-lg">Searching across stores...</p>
-                </div>
-
-                <!-- Results Section -->
-                <div id="resultsSection" class="mt-8 hidden">
-                    <div class="mb-6 flex items-center justify-between">
-                        <h2 class="text-2xl font-bold text-white">
-                            Results for "<span id="searchQuery"></span>"
-                        </h2>
-                        <div class="text-sm text-gray-300">
-                            <i class="fas fa-box mr-1"></i>
-                            <span id="productCount">0</span> products found
-                        </div>
-                    </div>
-
-                    <!-- Products Container -->
-                    <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Products will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Error State -->
-                <div id="errorState" class="hidden text-center py-12">
-                    <div class="text-red-400 text-5xl mb-4">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-white mb-2">Something went wrong</h3>
-                    <p class="text-gray-400" id="errorMessage">Please try again later.</p>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden text-center py-12">
-                    <div class="text-gray-500 text-5xl mb-4">
-                        <i class="fas fa-inbox"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-white mb-2">No results found</h3>
-                    <p class="text-gray-400">Try searching for different products</p>
+                    <button class="search-btn" id="searchBtn" onclick="searchProducts()" disabled>
+                        Search
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <footer id="footer" class="relative z-10 py-6 mt-0" style="background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="container mx-auto px-4 text-center">
-                <p class="text-gray-400 text-sm">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    Prices are fetched in real-time from multiple sources
-                </p>
-                <p class="text-gray-500 text-xs mt-2">
-                    Built with ❤️ by Meet Khurana
-                </p>
-            </div>
-        </footer>
+        <div id="resultsContainer"></div>
+    </div>
 
-        <!-- Location Modal -->
-        <div id="locationModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">Select Your Location</h3>
-                    <button class="close-modal" id="closeModal">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="relative">
-                    <input 
-                        type="text" 
-                        id="modalLocationInput" 
-                        placeholder="Enter your area or sector (e.g., sec)..." 
-                        class="glass-search w-full px-6 py-4 text-lg text-white rounded-xl focus:outline-none"
-                    >
-                    <div id="locationSuggestions" class="absolute z-50 top-full left-0 right-0 bg-black/90 backdrop-blur-md rounded-b-xl mt-1 hidden border border-white/20">
-                        <!-- Suggestions will be populated here -->
-                    </div>
-                </div>
-                <div id="modalSelectedLocation" class="mt-3 text-sm text-gray-300 flex items-center hidden">
-                    <i class="fas fa-check-circle mr-2 text-green-400"></i>
-                    <span id="modalSelectedLocationText"></span>
-                </div>
+    <div class="modal" id="locationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Your Location</h3>
+                <button class="close-btn" onclick="closeLocationModal()">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input 
+                    type="text" 
+                    id="locationSearchInput" 
+                    placeholder="Search for your area, sector, or landmark"
+                >
+                <div class="suggestions" id="locationSuggestions"></div>
             </div>
         </div>
     </div>
 
+    <div class="footer glass">
+        <p>Made with ❤️ by <strong>Meet</strong> · © <span id="year"></span> QuickCompare</p>
+    </div>
+
     <script>
-    // Location Management
-    const changeLocationBtn = document.getElementById('changeLocationBtn');
-    const locationModal = document.getElementById('locationModal');
-    const closeModal = document.getElementById('closeModal');
-    const modalLocationInput = document.getElementById('modalLocationInput');
-    const locationSuggestions = document.getElementById('locationSuggestions');
-    const selectedLocationText = document.getElementById('selectedLocationText');
-    const modalSelectedLocationText = document.getElementById('modalSelectedLocationText');
-    const modalSelectedLocationDiv = document.getElementById('modalSelectedLocation');
-    const searchBtn = document.getElementById('searchBtn');
-    
-    let currentLocation = {
-        placeId: null, // Start with null instead of default
-        description: "",
-        lat: null,
-        lng: null,
-        pincode: ""
-    };
-    let isLocationSelected = false; // Start as false to force selection
+        const BACKGROUND_TEXT = 'QUICKCOMPARE';
+        document.getElementById('bgText').textContent = BACKGROUND_TEXT;
 
-    // Initialize with empty location - force user to select
-    function initializeLocation() {
-        selectedLocationText.innerHTML = '<span class="text-yellow-400">Please select a location</span>';
-        searchBtn.disabled = true;
-        searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        isLocationSelected = false;
-    }
-    
-    function updateSelectedLocation() {
-        if (currentLocation.description) {
-            selectedLocationText.innerHTML = `${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
-            modalSelectedLocationText.innerHTML = `Serving: ${currentLocation.description}${currentLocation.pincode ? ` (${currentLocation.pincode})` : ''}`;
-            modalSelectedLocationDiv.classList.remove('hidden');
-            searchBtn.disabled = false;
-            searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            isLocationSelected = true;
-        } else {
-            initializeLocation();
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 220; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            const dur = (2 + Math.random() * 3).toFixed(2);
+            const delay = (Math.random() * 2).toFixed(2);
+            star.style.animation = `twinkle ${dur}s infinite ${delay}s`;
+            const size = Math.random() < 0.2 ? 3 : 2;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            starsContainer.appendChild(star);
         }
-    }
-    
-    function openModal() {
-        locationModal.classList.add('active');
-        modalLocationInput.value = currentLocation.description || '';
-        if (currentLocation.description) {
-            modalSelectedLocationDiv.classList.remove('hidden');
-        } else {
-            modalSelectedLocationDiv.classList.add('hidden');
-        }
-        document.body.style.overflow = 'hidden';
-        
-        // Focus on input when modal opens
-        setTimeout(() => {
-            modalLocationInput.focus();
-        }, 100);
-    }
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                const s = document.createElement('div');
+                s.className = 'shooting-star';
+                s.style.top = `${10 + Math.random() * 30}vh`;
+                s.style.left = `${70 + Math.random() * 20}vw`;
+                starsContainer.appendChild(s);
+                setTimeout(() => s.remove(), 2400);
+            }
+        }, 3500);
 
-    function closeLocationModal() {
-        locationModal.classList.remove('active');
-        locationSuggestions.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-    
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        window.addEventListener('load', () => {
+            const navH = document.querySelector('.navbar')?.offsetHeight || 64;
+            document.documentElement.style.setProperty('--nav-h', navH + 'px');
+        });
+
+        let currentLat = 28.4792711;
+        let currentLng = 77.00450409999999;
+        let currentPin = 122006;
+        let locationSelected = false;
+        let currentStoreIds = {
+            instamart: '1389005',
+            dmart: '10711',
+            zepto: null
         };
-    }
-    
-    const debouncedLocationSearch = debounce(async (value) => {
-        if (value.length < 2) {
-            locationSuggestions.innerHTML = '';
-            locationSuggestions.classList.add('hidden');
-            return;
-        }
-        
-        // Show loading
-        locationSuggestions.innerHTML = '<div class="suggestion-loading"><div class="loading" style="width: 20px; height: 20px; border-width: 2px;"></div> Searching...</div>';
-        locationSuggestions.classList.remove('hidden');
-        
-        try {
-            // Use default coordinates for initial search
-            const searchLat = currentLocation.lat || 28.4838282;
-            const searchLng = currentLocation.lng || 77.0028522;
-            
-            const url = `/location-search?q=${encodeURIComponent(value)}&lat=${searchLat}&lng=${searchLng}`;
-            const resp = await fetch(url);
-            const data = await resp.json();
-            
-            if (data.info?.status === 'success' && data.data && data.data.length > 0) {
-                locationSuggestions.innerHTML = data.data.map(item => `
-                    <div class="suggestion-item p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 text-white flex items-center justify-between" 
-                         data-placeid="${item.placeId}" 
-                         data-desc="${item.description.replace(/"/g, '&quot;')}" 
-                         data-pincode="${item.pincode || ''}">
-                        <div>
-                            <div class="font-medium">${item.name || item.description}</div>
-                            <div class="text-gray-400 text-sm mt-1">${item.description}</div>
-                            ${item.pincode ? `<div class="text-purple-400 text-xs">${item.pincode}</div>` : ''}
-                        </div>
-                        <i class="fas fa-map-marker-alt text-purple-400 text-sm"></i>
-                    </div>
-                `).join('');
-            } else {
-                locationSuggestions.innerHTML = '<div class="p-3 text-gray-400 text-center">No locations found</div>';
-            }
-        } catch (err) {
-            console.error('Location search error:', err);
-            locationSuggestions.innerHTML = '<div class="p-3 text-red-400 text-center">Error loading locations</div>';
-        }
-    }, 300);
-    
-    // Event listener for suggestion items using event delegation
-    locationSuggestions.addEventListener('click', (e) => {
-        const suggestionItem = e.target.closest('.suggestion-item');
-        if (suggestionItem) {
-            const placeId = suggestionItem.dataset.placeid;
-            const desc = suggestionItem.dataset.desc;
-            const pincode = suggestionItem.dataset.pincode;
-            selectLocation(placeId, desc, pincode);
-        }
-    });
-    
-    modalLocationInput.addEventListener('input', (e) => {
-        const value = e.target.value;
-        debouncedLocationSearch(value);
-    });
-    
-    modalLocationInput.addEventListener('focus', () => {
-        if (modalLocationInput.value.length >= 2) {
-            debouncedLocationSearch(modalLocationInput.value);
-        }
-    });
-    
-    // Handle location selection
-    async function selectLocation(placeId, desc, pin) {
-        try {
-            // Update current location immediately with the selected description
-            currentLocation = {
-                placeId: placeId,
-                description: desc,
-                lat: currentLocation.lat, // temporary, will update below
-                lng: currentLocation.lng, // temporary, will update below  
-                pincode: pin || ''
-            };
-            
-            // Update UI immediately
-            updateSelectedLocation();
-            locationSuggestions.classList.add('hidden');
-            
-            // Fetch coordinates for the selected location
-            console.log('Fetching coordinates for:', desc);
-            const coordsResp = await fetch(`/get-coords?desc=${encodeURIComponent(desc)}`);
-            if (coordsResp.ok) {
-                const coordsData = await coordsResp.json();
-                currentLocation.lat = coordsData.lat;
-                currentLocation.lng = coordsData.lng;
-                console.log('Location updated successfully:', {
-                    description: desc,
-                    lat: currentLocation.lat,
-                    lng: currentLocation.lng,
-                    pincode: pin
-                });
-            } else {
-                console.warn('Failed to fetch coordinates, using defaults');
-                // Fallback to default coordinates if geocoding fails
-                currentLocation.lat = 28.4838282;
-                currentLocation.lng = 77.0028522;
-            }
-            
-            closeLocationModal();
-            
-        } catch (err) {
-            console.error('Error in selectLocation:', err);
-            // Even if there's an error, we still update the description
-            updateSelectedLocation();
-            closeLocationModal();
-        }
-    }
-    
-    // Event listeners for modal
-    changeLocationBtn.addEventListener('click', openModal);
-    closeModal.addEventListener('click', closeLocationModal);
-    locationModal.addEventListener('click', (e) => {
-        if (e.target === locationModal) {
-            closeLocationModal();
-        }
-    });
-    
-    // Initialize with empty location
-    initializeLocation();
-    
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    const mainContent = document.getElementById('mainContent');
-    const loadingState = document.getElementById('loadingState');
-    const resultsSection = document.getElementById('resultsSection');
-    const errorState = document.getElementById('errorState');
-    const emptyState = document.getElementById('emptyState');
-    const productsContainer = document.getElementById('productsContainer');
-    const searchQuerySpan = document.getElementById('searchQuery');
-    const productCountSpan = document.getElementById('productCount');
-    const errorMessage = document.getElementById('errorMessage');
-    const footer = document.getElementById('footer');
 
-    // Quick search buttons
-    document.querySelectorAll('.quick-search').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (!isLocationSelected) {
-                alert('Please select a location first');
-                openModal();
+        // Load saved location from localStorage on page load
+        function loadSavedLocation() {
+            try {
+                const savedLocation = localStorage.getItem('quickcompare_location');
+                if (savedLocation) {
+                    const locationData = JSON.parse(savedLocation);
+                    
+                    // Restore location data
+                    currentLat = locationData.lat;
+                    currentLng = locationData.lng;
+                    currentPin = locationData.pin;
+                    
+                    // Update UI
+                    document.getElementById('locationText').textContent = locationData.name;
+                    document.getElementById('locationText').classList.add('selected');
+                    document.getElementById('locationDisplay').classList.add('selected');
+                    document.querySelector('.change-btn').textContent = 'Change';
+                    
+                    // Enable search
+                    locationSelected = true;
+                    document.getElementById('productInput').disabled = false;
+                    document.getElementById('searchBtn').disabled = false;
+                    
+                    // Fetch store IDs for the saved location
+                    updateStoreIds();
+                }
+            } catch (e) {
+                console.error('Error loading saved location:', e);
+            }
+        }
+
+        // Save location to localStorage
+        function saveLocation(name, lat, lng, pin) {
+            try {
+                const locationData = {
+                    name: name,
+                    lat: lat,
+                    lng: lng,
+                    pin: pin,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('quickcompare_location', JSON.stringify(locationData));
+            } catch (e) {
+                console.error('Error saving location:', e);
+            }
+        }
+
+        // Load saved location on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedLocation();
+        });
+
+        function openLocationModal() {
+            document.getElementById('locationModal').classList.add('active');
+            document.getElementById('locationSearchInput').focus();
+        }
+
+        function closeLocationModal() {
+            document.getElementById('locationModal').classList.remove('active');
+            document.getElementById('locationSuggestions').innerHTML = '';
+        }
+
+        document.getElementById('locationSearchInput').addEventListener('input', async (e) => {
+            const value = e.target.value.trim();
+            if (value.length < 2) {
+                document.getElementById('locationSuggestions').innerHTML = '';
                 return;
             }
-            searchInput.value = btn.textContent;
-            performSearch();
+
+            try {
+                const res = await fetch('/autocomplete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        searchWord: value,
+                        location: { lat: currentLat, lng: currentLng }
+                    })
+                });
+                const data = await res.json();
+                showLocationSuggestions(data.data || []);
+            } catch (e) {
+                console.error('Autocomplete error:', e);
+            }
         });
-    });
 
-    // Search button click
-    searchBtn.addEventListener('click', performSearch);
-
-    // Enter key press
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
-
-    function hideAllStates() {
-        loadingState.classList.add('hidden');
-        resultsSection.classList.add('hidden');
-        errorState.classList.add('hidden');
-        emptyState.classList.add('hidden');
-    }
-
-    function switchToNormalLayout() {
-        mainContent.classList.remove('centered-layout');
-        mainContent.classList.add('normal-layout');
-        footer.classList.remove('hidden');
-    }
-
-    function switchToCenteredLayout() {
-        mainContent.classList.remove('normal-layout');
-        mainContent.classList.add('centered-layout');
-        footer.classList.add('hidden');
-    }
-
-    async function performSearch() {
-        const query = searchInput.value.trim();
-        
-        if (!query) {
-            alert('Please enter a search term');
-            return;
-        }
-
-        // Check if location is selected
-        if (!isLocationSelected || !currentLocation.lat || !currentLocation.lng) {
-            alert('Please select a valid location first');
-            openModal();
-            return;
-        }
-
-        hideAllStates();
-        switchToNormalLayout();
-        loadingState.classList.remove('hidden');
-
-        try {
-            console.log('Making search request with location:', {
-                lat: currentLocation.lat,
-                lng: currentLocation.lng,
-                pincode: currentLocation.pincode
-            });
+        function showLocationSuggestions(suggestions) {
+            const container = document.getElementById('locationSuggestions');
+            container.innerHTML = '';
             
-            const url = `/search?query=${encodeURIComponent(query)}&lat=${currentLocation.lat}&lng=${currentLocation.lng}&pincode=${currentLocation.pincode || '122006'}`;
-            const response = await fetch(url);
-            const data = await response.json();
+            suggestions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = s.description;
+                item.onclick = () => selectLocation(s);
+                container.appendChild(item);
+            });
+        }
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch data');
+        async function selectLocation(selected) {
+            document.getElementById('locationSearchInput').value = selected.description;
+            
+            try {
+                const res = await fetch('/geocode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ place: selected.description })
+                });
+                const geo = await res.json();
+                
+                if (!geo.error) {
+                    currentLat = geo.lat;
+                    currentLng = geo.lng;
+                    if (geo.postcode) currentPin = geo.postcode;
+                    
+                    // Save to localStorage
+                    saveLocation(selected.name, currentLat, currentLng, currentPin);
+                    
+                    document.getElementById('locationText').textContent = selected.name;
+                    document.getElementById('locationText').classList.add('selected');
+                    const ld = document.getElementById('locationDisplay');
+                    ld.classList.add('selected');
+                    document.querySelector('.change-btn').textContent = 'Change';
+                    
+                    locationSelected = true;
+                    document.getElementById('productInput').disabled = false;
+                    document.getElementById('searchBtn').disabled = false;
+                    
+                    await updateStoreIds();
+                    
+                    setTimeout(() => {
+                        closeLocationModal();
+                    }, 300);
+                }
+            } catch (e) {
+                console.error('Geocode error:', e);
+            }
+        }
+
+        async function updateStoreIds() {
+            try {
+                const res = await fetch('/store-ids', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: currentLat,
+                        lng: currentLng,
+                        pincode: currentPin
+                    })
+                });
+                
+                if (res.ok) {
+                    const storeData = await res.json();
+                    if (storeData.instamart?.storeId) currentStoreIds.instamart = storeData.instamart.storeId;
+                    if (storeData.dmart?.storeId) currentStoreIds.dmart = storeData.dmart.storeId;
+                    if (storeData.zepto?.storeId) currentStoreIds.zepto = storeData.zepto.storeId;
+                    if (storeData.jiomart) currentStoreIds.jiomart = storeData.jiomart;
+                }
+            } catch (e) {
+                console.error('Error fetching store IDs:', e);
+            }
+        }
+
+        async function searchProducts() {
+            const query = document.getElementById('productInput').value.trim();
+            if (!query || !locationSelected) return;
+
+            document.getElementById('hero').classList.add('compact');
+            document.getElementById('searchWrapper').classList.add('compact');
+
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching across all stores...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch('/aggregate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        lat: currentLat,
+                        lng: currentLng,
+                        pincode: currentPin
+                    })
+                });
+
+                if (!res.ok) throw new Error('Search failed');
+
+                const data = await res.json();
+                displayResults(data);
+            } catch (e) {
+                console.error('Search error:', e);
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="no-results">
+                        <h3>Something went wrong</h3>
+                        <p>Please try again</p>
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('productInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchProducts();
+        });
+
+        function displayResults(data) {
+            let allProducts = [];
+
+            // Parse Blinkit - Generate URL using product_id
+            if (data.blinkit?.products) {
+                data.blinkit.products.forEach(p => {
+                    const productUrl = p.product_id ? `https://blinkit.com/prn/x/prid/${p.product_id}` : '';
+                    allProducts.push({
+                        source: 'Blinkit',
+                        name: p.name,
+                        brand: p.brand || '',
+                        unit: p.unit || '',
+                        price: p.price,
+                        mrp: p.price,
+                        image_url: p.image_url || '',
+                        out_of_stock: p.inventory <= 0,
+                        url: productUrl
+                    });
+                });
             }
 
-            displayResults(data, query);
-        } catch (error) {
-            console.error('Search error:', error);
-            hideAllStates();
-            errorState.classList.remove('hidden');
-            errorMessage.textContent = error.message;
+            // Parse Instamart - Generate URL using product_id
+            if (data.instamart?.products) {
+                data.instamart.products.forEach(prod => {
+                    const productUrl = prod.product_id ? `https://www.swiggy.com/instamart/item/${prod.product_id}` : '';
+                    prod.variations.forEach(v => {
+                        let img = '';
+                        if (v.images?.length > 0) {
+                            img = `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_252,h_272/${v.images[0]}.png`;
+                        }
+                        allProducts.push({
+                            source: 'Instamart',
+                            name: prod.display_name,
+                            brand: prod.brand || '',
+                            unit: v.quantity || '',
+                            price: v.price?.offer_price || 0,
+                            mrp: v.price?.mrp || 0,
+                            image_url: img,
+                            out_of_stock: !v.inventory?.in_stock,
+                            url: productUrl
+                        });
+                    });
+                });
+            }
+
+            // Parse Zepto - Generate URL using productVariant.id
+            if (data.zepto && Array.isArray(data.zepto)) {
+                data.zepto.forEach(p => {
+                    const price = (p.sellingPrice || 0) / 100;
+                    const superPrice = (p.superSaverSellingPrice || 0) / 100;
+                    const usePrice = superPrice || price;
+                    let img = '';
+                    if (p.productVariant?.images?.length > 0) {
+                        const path = p.productVariant.images[0].path;
+                        img = `https://cdn.zeptonow.com/production/tr:w-400,ar-1000-1000,pr-true,f-auto,q-80/cms/${path}`;
+                    }
+                    const productUrl = p.productVariant?.id ? `https://www.zepto.com/pn/x/pvid/${p.productVariant.id}` : '';
+                    allProducts.push({
+                        source: 'Zepto',
+                        name: p.product.name,
+                        brand: p.product.name.split(' ')[0] || '',
+                        unit: p.productVariant?.formattedPacksize || '',
+                        price: usePrice,
+                        mrp: price,
+                        image_url: img,
+                        out_of_stock: p.outOfStock,
+                        url: productUrl
+                    });
+                });
+            }
+
+            // Parse BigBasket
+            if (data.bigbasket?.products) {
+                data.bigbasket.products.forEach(p => {
+                    allProducts.push({
+                        source: 'BigBasket',
+                        name: p.name,
+                        brand: p.brand || '',
+                        unit: p.unit || '',
+                        price: p.price,
+                        mrp: p.mrp,
+                        image_url: p.image_url || '',
+                        out_of_stock: p.out_of_stock,
+                        url: p.url || ''
+                    });
+                    if (p.variants) {
+                        p.variants.forEach(v => {
+                            allProducts.push({
+                                source: 'BigBasket',
+                                name: v.name || p.name,
+                                brand: p.brand || '',
+                                unit: v.unit || '',
+                                price: v.price,
+                                mrp: v.mrp,
+                                image_url: v.image_url || p.image_url,
+                                out_of_stock: v.out_of_stock !== undefined ? v.out_of_stock : p.out_of_stock,
+                                url: v.url || p.url || ''
+                            });
+                        });
+                    }
+                });
+            }
+
+            // Parse Flipkart Minutes
+            if (data['flipkart-minutes'] && Array.isArray(data['flipkart-minutes'])) {
+                data['flipkart-minutes'].forEach(p => {
+                    allProducts.push({
+                        source: 'Flipkart Minutes',
+                        name: p.name,
+                        brand: p.brand || '',
+                        unit: p.quantity || '',
+                        price: p.price?.offerPrice || 0,
+                        mrp: p.price?.mrp || 0,
+                        image_url: p.imageUrl || '',
+                        out_of_stock: p.out_of_stock,
+                        url: p.url || ''
+                    });
+                });
+            }
+
+            // Parse JioMart
+            if (data.jiomart?.products) {
+                data.jiomart.products.forEach(p => {
+                    allProducts.push({
+                        source: 'JioMart',
+                        name: p.name,
+                        brand: p.brand || '',
+                        unit: p.unit || '',
+                        price: p.price,
+                        mrp: p.price,
+                        image_url: p.image_url || '',
+                        out_of_stock: false,
+                        url: p.url || ''
+                    });
+                    if (p.variants) {
+                        p.variants.forEach(v => {
+                            allProducts.push({
+                                source: 'JioMart',
+                                name: v.name,
+                                brand: v.brand || p.brand || '',
+                                unit: v.unit || '',
+                                price: v.price,
+                                mrp: v.price,
+                                image_url: v.image_url || p.image_url,
+                                out_of_stock: false,
+                                url: v.url || p.url || ''
+                            });
+                        });
+                    }
+                });
+            }
+
+            // Parse DMart
+            if (data.dmart?.products) {
+                data.dmart.products.forEach(p => {
+                    allProducts.push({
+                        source: 'DMart',
+                        name: p.name,
+                        brand: p.brand || '',
+                        unit: p.unit || '',
+                        price: p.price,
+                        mrp: p.mrp,
+                        image_url: p.image_url || '',
+                        out_of_stock: p.out_of_stock,
+                        url: p.url || ''
+                    });
+                    if (p.variants) {
+                        p.variants.forEach(v => {
+                            allProducts.push({
+                                source: 'DMart',
+                                name: v.name,
+                                brand: v.brand || p.brand || '',
+                                unit: v.unit || '',
+                                price: v.price,
+                                mrp: v.mrp,
+                                image_url: v.image_url || p.image_url,
+                                out_of_stock: v.out_of_stock,
+                                url: v.url || p.url || ''
+                            });
+                        });
+                    }
+                });
+            }
+
+            const groups = groupProducts(allProducts);
+            renderProductCards(groups);
         }
-    }
 
-    function displayResults(data, query) {
-        hideAllStates();
+        function groupProducts(products) {
+            const groups = {};
 
-        if (!data.products || data.products.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
+            products.forEach(prod => {
+                const signature = extractProductSignature(prod.brand, prod.name);
+                const cleanedName = cleanProductName(prod.name, prod.brand);
+
+                if (!groups[signature]) {
+                    groups[signature] = {
+                        products: [],
+                        sources: new Set(),
+                        image: '',
+                        displayName: cleanedName,
+                        brand: prod.brand,
+                        originalNames: [cleanedName]
+                    };
+                }
+
+                groups[signature].products.push(prod);
+                groups[signature].sources.add(prod.source);
+
+                if (!groups[signature].image && prod.image_url) {
+                    groups[signature].image = prod.image_url;
+                }
+
+                groups[signature].originalNames.push(cleanedName);
+                const longestName = groups[signature].originalNames.reduce((a, b) => 
+                    a.length > b.length ? a : b
+                );
+                groups[signature].displayName = longestName;
+            });
+
+            return groups;
         }
 
-        searchQuerySpan.textContent = query;
-        productCountSpan.textContent = data.products.length;
-        productsContainer.innerHTML = '';
+        function extractProductSignature(brand, productName) {
+            const keywords = new Set();
+            const name = (productName || '').toLowerCase();
 
-        data.products.forEach(product => {
-            const productElement = createProductCard(product);
-            productsContainer.appendChild(productElement);
-        });
+            if (/\bshudh\b/.test(name) && !/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('shudh');
+            if (/\bselect\b/.test(name)) keywords.add('select');
+            if (/\bpremium\b/.test(name) && !/\bselect\b/.test(name)) keywords.add('premium');
+            if (/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('mp-chakki');
+            if (/\borganic\b/.test(name)) keywords.add('organic');
+            if (/\bhigh\s+protein\b/.test(name)) keywords.add('high-protein');
+            if (/\bmulti[-\s]?grain/i.test(name)) keywords.add('multigrain');
+            if (/\bsharbati\b/.test(name)) keywords.add('sharbati');
 
-        resultsSection.classList.remove('hidden');
-    }
+            if (keywords.size === 0) {
+                if (/\bchakki\b/.test(name)) keywords.add('chakki');
+                else keywords.add('generic');
+            }
 
-    function createProductCard(product) {
-        const div = document.createElement('div');
-        div.className = 'product-card rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow';
+            const brandKey = (brand || '').toLowerCase().trim() || 'no-brand';
+            const keywordsKey = Array.from(keywords).sort().join('-');
 
-        const imageUrl = product.image_url || '';
-        const name = product.name || 'Unknown Product';
-        const platforms = product.platforms || [];
-        
-        const compareBtn = platforms.length > 1 ? `
-            <button class="absolute top-3 right-3 bg-white/90 hover:bg-white px-3 py-1.5 rounded-lg text-sm font-medium text-gray-800 shadow-lg transition">
-                <i class="fas fa-plus mr-1"></i> Compare
-            </button>
-        ` : '';
-        
-        div.innerHTML = `
-            <div class="relative">
-                ${imageUrl ? `
-                    <div class="h-48 bg-gray-900 flex items-center justify-center p-4">
-                        <img src="${imageUrl}" 
-                             alt="${name}" 
-                             class="max-h-full max-w-full object-contain"
-                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23111%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+            return `${brandKey}__${keywordsKey}`;
+        }
+
+        function cleanProductName(name, brand) {
+            let cleaned = name || '';
+            const fluffPatterns = [
+                /\(100%\s+atta,?\s+0%\s+maida\)/gi,
+                /\b0%\s+maida\b/gi,
+                /\b100%\s+(wheat|atta|organic)\b/gi,
+                /\bfor\s+softer\s+rotis?\b/gi,
+                /\|\s*.*/g,
+            ];
+
+            fluffPatterns.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, '');
+            });
+
+            return cleaned.replace(/\s+/g, ' ').trim();
+        }
+
+        function renderProductCards(groups) {
+            const sortedKeys = Object.keys(groups).sort((a, b) => {
+                return groups[b].sources.size - groups[a].sources.size;
+            });
+
+            if (sortedKeys.length === 0) {
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="no-results">
+                        <h3>No products found</h3>
+                        <p>Try searching for something else</p>
                     </div>
-                ` : `
-                    <div class="h-48 bg-gray-900 flex items-center justify-center">
-                        <i class="fas fa-box text-gray-600 text-4xl"></i>
-                    </div>
-                `}
-                ${compareBtn}
-            </div>
-            
-            <div class="p-6">
-                <h3 class="text-white font-semibold text-lg mb-3 line-clamp-2" title="${name}">${name}</h3>
+                `;
+                return;
+            }
+
+            const resultsHTML = `<div class="results">${sortedKeys.map(key => {
+                const group = groups[key];
                 
-                <div class="space-y-3">
-                    ${platforms.map((platform, index) => createPlatformRow(platform, index === 0)).join('')}
-                </div>
-                
-                ${platforms.length > 0 ? `
-                    <div class="mt-4 pt-3 border-t border-white/10">
-                        <div class="text-sm text-gray-300 flex justify-between">
-                            <span>Available at ${platforms.length} stores</span>
-                            <span class="font-medium text-green-400">Cheapest: ₹${Math.min(...platforms.filter(p => p.in_stock).map(p => p.price)).toFixed(2)}</span>
+                const unitGroups = {};
+                group.products.forEach(prod => {
+                    const unitSafe = (prod.unit || 'unit').toString();
+                    const normalizedUnit = unitSafe.toLowerCase().replace(/\s+/g, ' ').trim();
+                    if (!unitGroups[normalizedUnit]) unitGroups[normalizedUnit] = [];
+                    
+                    const isDuplicate = unitGroups[normalizedUnit].some(existing => 
+                        existing.source === prod.source && 
+                        Math.abs(existing.price - prod.price) < 0.01
+                    );
+                    
+                    if (!isDuplicate) {
+                        unitGroups[normalizedUnit].push(prod);
+                    }
+                });
+
+                const sortedUnits = Object.keys(unitGroups).sort((a, b) => {
+                    const na = parseFloat(a), nb = parseFloat(b);
+                    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                    return a.localeCompare(b);
+                });
+
+                const variantsHTML = sortedUnits.map(unit => {
+                    const variants = unitGroups[unit].sort((a, b) => (a.price || 0) - (b.price || 0));
+                    const cheapestPrice = variants.length > 0 ? variants[0].price : 0;
+                    
+                    const pricesHTML = variants.map(p => {
+                        const isCheapest = Math.abs(p.price - cheapestPrice) < 0.01;
+                        const sourceClass = p.source.toLowerCase().replace(/\s+/g, '');
+                        
+                        return `
+                            <div class="price-row">
+                                <div class="price-left">
+                                    <span class="source-tag ${sourceClass}">${p.source}</span>
+                                </div>
+                                <div class="price-right">
+                                    <span class="price-amount">
+                                        ${isCheapest ? '<span class="crown-icon">👑</span>' : ''}
+                                        ₹${(p.price || 0).toFixed(2)}
+                                    </span>
+                                    <span class="price-link">
+                                        ${p.url ? '<a href="' + p.url + '" target="_blank">🔗</a>' : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="variant-row">
+                            <div class="variant-label">${unit}</div>
+                            ${pricesHTML}
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="product-card">
+                        ${group.image ? 
+                            `<img src="${group.image}" alt="${group.displayName}" class="product-image" onerror="this.outerHTML='<div class=\\'product-image-placeholder\\'>No Image</div>'">` :
+                            `<div class="product-image-placeholder">No Image</div>`
+                        }
+                        <div class="product-info">
+                            <div class="product-name">${group.displayName}</div>
+                            <div class="product-brand">${group.brand || 'Generic'}</div>
+                            <div class="price-info">
+                                ${variantsHTML}
+                            </div>
                         </div>
                     </div>
-                ` : ''}
-            </div>
-        `;
+                `;
+            }).join('')}</div>`;
 
-        return div;
-    }
+            document.getElementById('resultsContainer').innerHTML = resultsHTML;
+        }
 
-    function createPlatformRow(platform, isFirst) {
-        const price = platform.price || 0;
-        const formattedPrice = `₹${price.toFixed(2)}`;
-        const unit = platform.unit || '';
-        const mrp = platform.mrp || price;
-        const hasDiscount = mrp > price;
-        const discount = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0;
-        const isMyShop = platform.is_my_shop || false;
-        const inStock = platform.in_stock !== false;
-        const isCheapest = platform.is_cheapest || false;
-        
-        const platformColors = {
-            'Blinkit': 'bg-orange-500',
-            'Instamart': 'bg-red-500',
-            'Zepto': 'bg-purple-600',
-            'Bigbasket': 'bg-green-500',
-            'Dmart': 'bg-blue-600',
-            'Jiomart': 'bg-indigo-600',
-            'Flipkart Minutes': 'bg-pink-500'
-        };
-        
-        const platformColor = platformColors[platform.source] || 'bg-gray-500';
-        const badgeClass = isCheapest ? 'bg-green-100 text-green-800 border-green-300' : 
-                          isMyShop ? 'bg-purple-100 text-purple-800 border-purple-300' : 
-                          'bg-gray-100 text-gray-800 border-gray-300';
-        const badgeText = isCheapest ? '<i class="fas fa-crown text-xs mr-1"></i>Cheapest!' : 
-                      isMyShop ? '<i class="fas fa-heart text-xs mr-1"></i>Your Shop' : '';
-        
-        const mrpHtml = hasDiscount ? `<span class="text-xs text-gray-400 line-through ml-1">₹${mrp.toFixed(2)}</span>` : '';
-        const discountHtml = hasDiscount ? `<span class="text-xs text-green-600 font-medium ml-1">${discount}% OFF</span>` : '';
-        
-        return `
-            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition border border-white/10 ${!inStock ? 'opacity-60' : ''}">
-                <div class="flex items-center space-x-3 flex-1">
-                    <span class="px-3 py-1 rounded-md text-xs font-bold text-white ${platformColor}">
-                        ${platform.source}
-                    </span>
-                    ${isCheapest || isMyShop ? `<span class="px-2 py-1 rounded-md text-xs font-semibold border ${badgeClass}">${badgeText}</span>` : ''}
-                </div>
-                
-                <div class="text-right">
-                    <div class="text-lg font-bold text-white mb-1">${formattedPrice}${mrpHtml}${discountHtml}</div>
-                    ${unit ? `<div class="text-xs text-gray-400">${unit}</div>` : ''}
-                    ${!inStock ? '<div class="text-xs text-red-400 mt-1">Out of Stock</div>' : ''}
-                </div>
-                
-                <button class="ml-3 p-2 text-gray-400 hover:text-white transition rounded-full hover:bg-white/10">
-                    <i class="fas fa-external-link-alt"></i>
-                </button>
-            </div>
-        `;
-    }
-    
-    // Generate twinkling stars
-    const starsContainer = document.getElementById('stars');
-    for (let i = 0; i < 200; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.animation = `twinkle ${2 + Math.random() * 3}s infinite ${Math.random() * 2}s`;
-        starsContainer.appendChild(star);
-    }
-</script>
+        document.getElementById('locationModal').addEventListener('click', (e) => {
+            if (e.target.id === 'locationModal') {
+                closeLocationModal();
+            }
+        });
+    </script>
 </body>
 </html>
