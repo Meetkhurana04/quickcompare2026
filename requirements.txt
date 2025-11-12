@@ -1,5 +1,5 @@
 Flask==3.0.0
-requests==2.31.0
-pandas==2.2.0rc0  # Pre-release version with Python 3.13 support
-numpy>=1.26.0
-Werkzeug==3.0.1
+requests==2.32.3
+pandas==2.2.3
+numpy>=2.0.0
+Werkzeug==3.0.3
