@@ -1125,610 +1125,619 @@
     </div>
 
     <script>
-        const BACKGROUND_TEXT = '#Support_Local';
-        document.getElementById('bgText').textContent = BACKGROUND_TEXT;
+    const BACKGROUND_TEXT = '#Support_Local';
+    document.getElementById('bgText').textContent = BACKGROUND_TEXT;
 
-        const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 220; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            const dur = (2 + Math.random() * 3).toFixed(2);
-            const delay = (Math.random() * 2).toFixed(2);
-            star.style.animation = `twinkle ${dur}s infinite ${delay}s`;
-            const size = Math.random() < 0.2 ? 3 : 2;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            starsContainer.appendChild(star);
+    // ✅ YOUR CLOUDFLARE WORKER URL
+    const API_BASE = 'https://api.meetwillstudy.workers.dev';
+
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 220; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        const dur = (2 + Math.random() * 3).toFixed(2);
+        const delay = (Math.random() * 2).toFixed(2);
+        star.style.animation = `twinkle ${dur}s infinite ${delay}s`;
+        const size = Math.random() < 0.2 ? 3 : 2;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        starsContainer.appendChild(star);
+    }
+    setInterval(() => {
+        if (Math.random() < 0.3) {
+            const s = document.createElement('div');
+            s.className = 'shooting-star';
+            s.style.top = `${10 + Math.random() * 30}vh`;
+            s.style.left = `${70 + Math.random() * 20}vw`;
+            starsContainer.appendChild(s);
+            setTimeout(() => s.remove(), 2400);
         }
-        setInterval(() => {
-            if (Math.random() < 0.3) {
-                const s = document.createElement('div');
-                s.className = 'shooting-star';
-                s.style.top = `${10 + Math.random() * 30}vh`;
-                s.style.left = `${70 + Math.random() * 20}vw`;
-                starsContainer.appendChild(s);
-                setTimeout(() => s.remove(), 2400);
+    }, 3500);
+
+    window.addEventListener('load', () => {
+        const navH = document.querySelector('.navbar')?.offsetHeight || 64;
+        document.documentElement.style.setProperty('--nav-h', navH + 'px');
+    });
+
+    let currentLat = 28.4792711;
+    let currentLng = 77.00450409999999;
+    let currentPin = 122006;
+    let locationSelected = false;
+    let currentStoreIds = {
+        instamart: '1389005',
+        dmart: '10711',
+        zepto: null,
+        jiomart: {}
+    };
+
+    function loadSavedLocation() {
+        try {
+            const savedLocation = localStorage.getItem('quickcompare_location');
+            if (savedLocation) {
+                const locationData = JSON.parse(savedLocation);
+                
+                currentLat = locationData.lat;
+                currentLng = locationData.lng;
+                currentPin = locationData.pin;
+                
+                document.getElementById('locationText').textContent = locationData.name;
+                document.getElementById('locationText').classList.add('selected');
+                document.getElementById('locationDisplay').classList.add('selected');
+                document.querySelector('.change-btn').textContent = 'Change';
+                
+                locationSelected = true;
+                document.getElementById('productInput').disabled = false;
+                document.getElementById('searchBtn').disabled = false;
+                
+                updateStoreIds();
             }
-        }, 3500);
-
-        // document.getElementById('year').textContent = new Date().getFullYear();
-
-        window.addEventListener('load', () => {
-            const navH = document.querySelector('.navbar')?.offsetHeight || 64;
-            document.documentElement.style.setProperty('--nav-h', navH + 'px');
-        });
-
-        let currentLat = 28.4792711;
-        let currentLng = 77.00450409999999;
-        let currentPin = 122006;
-        let locationSelected = false;
-        let currentStoreIds = {
-            instamart: '1389005',
-            dmart: '10711',
-            zepto: null
-        };
-
-        // Load saved location from localStorage on page load
-        function loadSavedLocation() {
-            try {
-                const savedLocation = localStorage.getItem('quickcompare_location');
-                if (savedLocation) {
-                    const locationData = JSON.parse(savedLocation);
-                    
-                    currentLat = locationData.lat;
-                    currentLng = locationData.lng;
-                    currentPin = locationData.pin;
-                    
-                    document.getElementById('locationText').textContent = locationData.name;
-                    document.getElementById('locationText').classList.add('selected');
-                    document.getElementById('locationDisplay').classList.add('selected');
-                    document.querySelector('.change-btn').textContent = 'Change';
-                    
-                    locationSelected = true;
-                    document.getElementById('productInput').disabled = false;
-                    document.getElementById('searchBtn').disabled = false;
-                    
-                    updateStoreIds();
-                }
-            } catch (e) {
-                console.error('Error loading saved location:', e);
-            }
+        } catch (e) {
+            console.error('Error loading saved location:', e);
         }
+    }
 
-        function saveLocation(name, lat, lng, pin) {
-            try {
-                const locationData = {
-                    name: name,
-                    lat: lat,
-                    lng: lng,
-                    pin: pin,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('quickcompare_location', JSON.stringify(locationData));
-            } catch (e) {
-                console.error('Error saving location:', e);
-            }
+    function saveLocation(name, lat, lng, pin) {
+        try {
+            const locationData = {
+                name: name,
+                lat: lat,
+                lng: lng,
+                pin: pin,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('quickcompare_location', JSON.stringify(locationData));
+        } catch (e) {
+            console.error('Error saving location:', e);
         }
+    }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadSavedLocation();
-        });
+    window.addEventListener('DOMContentLoaded', () => {
+        loadSavedLocation();
+    });
 
-        function openLocationModal() {
-            document.getElementById('locationModal').classList.add('active');
-            document.getElementById('locationSearchInput').focus();
-        }
+    function openLocationModal() {
+        document.getElementById('locationModal').classList.add('active');
+        document.getElementById('locationSearchInput').focus();
+    }
 
-        function closeLocationModal() {
-            document.getElementById('locationModal').classList.remove('active');
+    function closeLocationModal() {
+        document.getElementById('locationModal').classList.remove('active');
+        document.getElementById('locationSuggestions').innerHTML = '';
+    }
+
+    // ✅ UPDATED: Call Cloudflare Worker directly
+    document.getElementById('locationSearchInput').addEventListener('input', async (e) => {
+        const value = e.target.value.trim();
+        if (value.length < 2) {
             document.getElementById('locationSuggestions').innerHTML = '';
+            return;
         }
 
-        document.getElementById('locationSearchInput').addEventListener('input', async (e) => {
-            const value = e.target.value.trim();
-            if (value.length < 2) {
-                document.getElementById('locationSuggestions').innerHTML = '';
-                return;
-            }
-
-            try {
-                const res = await fetch('/autocomplete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        searchWord: value,
-                        location: { lat: currentLat, lng: currentLng }
-                    })
-                });
-                const data = await res.json();
-                showLocationSuggestions(data.data || []);
-            } catch (e) {
-                console.error('Autocomplete error:', e);
-            }
-        });
-
-        function showLocationSuggestions(suggestions) {
-            const container = document.getElementById('locationSuggestions');
-            container.innerHTML = '';
-            
-            suggestions.forEach(s => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.textContent = s.description;
-                item.onclick = () => selectLocation(s);
-                container.appendChild(item);
+        try {
+            const res = await fetch(`${API_BASE}/autocomplete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    searchWord: value,
+                    location: { lat: currentLat, lng: currentLng }
+                })
             });
+            const data = await res.json();
+            showLocationSuggestions(data.data || []);
+        } catch (e) {
+            console.error('Autocomplete error:', e);
         }
+    });
 
-        async function selectLocation(selected) {
-            document.getElementById('locationSearchInput').value = selected.description;
+    function showLocationSuggestions(suggestions) {
+        const container = document.getElementById('locationSuggestions');
+        container.innerHTML = '';
+        
+        suggestions.forEach(s => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = s.description;
+            item.onclick = () => selectLocation(s);
+            container.appendChild(item);
+        });
+    }
+
+    // ✅ UPDATED: Geocode via Worker
+    async function selectLocation(selected) {
+        document.getElementById('locationSearchInput').value = selected.description;
+        
+        try {
+            const res = await fetch(`${API_BASE}/geocode`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ place: selected.description })
+            });
+            const geo = await res.json();
             
-            try {
-                const res = await fetch('/geocode', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ place: selected.description })
-                });
-                const geo = await res.json();
+            if (!geo.error) {
+                currentLat = geo.lat;
+                currentLng = geo.lng;
+                if (geo.postcode) currentPin = geo.postcode;
                 
-                if (!geo.error) {
-                    currentLat = geo.lat;
-                    currentLng = geo.lng;
-                    if (geo.postcode) currentPin = geo.postcode;
-                    
-                    saveLocation(selected.name, currentLat, currentLng, currentPin);
-                    
-                    document.getElementById('locationText').textContent = selected.name;
-                    document.getElementById('locationText').classList.add('selected');
-                    const ld = document.getElementById('locationDisplay');
-                    ld.classList.add('selected');
-                    document.querySelector('.change-btn').textContent = 'Change';
-                    
-                    locationSelected = true;
-                    document.getElementById('productInput').disabled = false;
-                    document.getElementById('searchBtn').disabled = false;
-                    
-                    await updateStoreIds();
-                    
-                    setTimeout(() => {
-                        closeLocationModal();
-                    }, 300);
-                }
-            } catch (e) {
-                console.error('Geocode error:', e);
-            }
-        }
-
-        async function updateStoreIds() {
-            try {
-                const res = await fetch('/store-ids', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        lat: currentLat,
-                        lng: currentLng,
-                        pincode: currentPin
-                    })
-                });
+                saveLocation(selected.name, currentLat, currentLng, currentPin);
                 
-                if (res.ok) {
-                    const storeData = await res.json();
-                    if (storeData.instamart?.storeId) currentStoreIds.instamart = storeData.instamart.storeId;
-                    if (storeData.dmart?.storeId) currentStoreIds.dmart = storeData.dmart.storeId;
-                    if (storeData.zepto?.storeId) currentStoreIds.zepto = storeData.zepto.storeId;
-                    if (storeData.jiomart) currentStoreIds.jiomart = storeData.jiomart;
-                }
-            } catch (e) {
-                console.error('Error fetching store IDs:', e);
+                document.getElementById('locationText').textContent = selected.name;
+                document.getElementById('locationText').classList.add('selected');
+                const ld = document.getElementById('locationDisplay');
+                ld.classList.add('selected');
+                document.querySelector('.change-btn').textContent = 'Change';
+                
+                locationSelected = true;
+                document.getElementById('productInput').disabled = false;
+                document.getElementById('searchBtn').disabled = false;
+                
+                await updateStoreIds();
+                
+                setTimeout(() => {
+                    closeLocationModal();
+                }, 300);
             }
+        } catch (e) {
+            console.error('Geocode error:', e);
         }
+    }
 
-        async function searchProducts() {
-            const query = document.getElementById('productInput').value.trim();
-            if (!query || !locationSelected) return;
+    // ✅ UPDATED: Store IDs via Worker
+    async function updateStoreIds() {
+        try {
+            const res = await fetch(`${API_BASE}/store-ids`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lat: currentLat,
+                    lng: currentLng,
+                    pincode: currentPin
+                })
+            });
+            
+            if (res.ok) {
+                const storeData = await res.json();
+                if (storeData.instamart?.storeId) currentStoreIds.instamart = storeData.instamart.storeId;
+                if (storeData.dmart?.storeId) currentStoreIds.dmart = storeData.dmart.storeId;
+                if (storeData.zepto?.storeId) currentStoreIds.zepto = storeData.zepto.storeId;
+                if (storeData.jiomart) currentStoreIds.jiomart = storeData.jiomart;
+            }
+        } catch (e) {
+            console.error('Error fetching store IDs:', e);
+        }
+    }
 
-            document.body.classList.add('searched');
-            document.getElementById('container').classList.add('searched');
-            document.getElementById('hero').classList.add('compact');
-            document.getElementById('searchWrapper').classList.add('compact');
-            document.querySelector('.footer').classList.add('visible');
+    // ✅ UPDATED: Aggregate via Worker
+    async function searchProducts() {
+        const query = document.getElementById('productInput').value.trim();
+        if (!query || !locationSelected) return;
 
+        document.body.classList.add('searched');
+        document.getElementById('container').classList.add('searched');
+        document.getElementById('hero').classList.add('compact');
+        document.getElementById('searchWrapper').classList.add('compact');
+        document.querySelector('.footer').classList.add('visible');
+
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Searching across all stores...</p>
+            </div>
+        `;
+
+        try {
+            const res = await fetch(`${API_BASE}/aggregate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: query,
+                    lat: currentLat,
+                    lng: currentLng,
+                    pincode: currentPin,
+                    storeId: currentStoreIds.zepto || '607dfe88-5e9b-4db8-bfb0-73bea3e8fb54',
+                    instamartStoreId: currentStoreIds.instamart,
+                    dmartStoreId: currentStoreIds.dmart,
+                    jiomart: currentStoreIds.jiomart
+                })
+            });
+
+            if (!res.ok) throw new Error('Search failed');
+
+            const data = await res.json();
+            displayResults(data);
+        } catch (e) {
+            console.error('Search error:', e);
             document.getElementById('resultsContainer').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Searching across all stores...</p>
+                <div class="no-results">
+                    <h3>Something went wrong</h3>
+                    <p>Please try again</p>
                 </div>
             `;
+        }
+    }
 
-            try {
-                const res = await fetch('/aggregate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: query,
-                        lat: currentLat,
-                        lng: currentLng,
-                        pincode: currentPin
-                    })
+    document.getElementById('productInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchProducts();
+    });
+
+    function displayResults(data) {
+        let allProducts = [];
+
+        if (data.blinkit?.products) {
+            data.blinkit.products.forEach(p => {
+                const productUrl = p.product_id ? `https://blinkit.com/prn/x/prid/${p.product_id}` : '';
+                allProducts.push({
+                    source: 'Blinkit',
+                    name: p.name,
+                    brand: p.brand || '',
+                    unit: p.unit || '',
+                    price: p.price,
+                    mrp: p.price,
+                    image_url: p.image_url || '',
+                    out_of_stock: p.inventory <= 0,
+                    url: productUrl
                 });
-
-                if (!res.ok) throw new Error('Search failed');
-
-                const data = await res.json();
-                displayResults(data);
-            } catch (e) {
-                console.error('Search error:', e);
-                document.getElementById('resultsContainer').innerHTML = `
-                    <div class="no-results">
-                        <h3>Something went wrong</h3>
-                        <p>Please try again</p>
-                    </div>
-                `;
-            }
+            });
         }
 
-        document.getElementById('productInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchProducts();
+        if (data.instamart?.products) {
+            data.instamart.products.forEach(prod => {
+                const productUrl = prod.product_id ? `https://www.swiggy.com/instamart/item/${prod.product_id}` : '';
+                prod.variations.forEach(v => {
+                    let img = '';
+                    if (v.images?.length > 0) {
+                        img = `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_252,h_272/${v.images[0]}`;
+                    }
+                    allProducts.push({
+                        source: 'Instamart',
+                        name: prod.display_name,
+                        brand: prod.brand || '',
+                        unit: v.quantity || '',
+                        price: v.price?.offer_price || 0,
+                        mrp: v.price?.mrp || 0,
+                        image_url: img,
+                        out_of_stock: !v.inventory?.in_stock,
+                        url: productUrl
+                    });
+                });
+            });
+        }
+
+        if (data.zepto && Array.isArray(data.zepto)) {
+            data.zepto.forEach(p => {
+                const price = (p.sellingPrice || 0) / 100;
+                const superPrice = (p.superSaverSellingPrice || 0) / 100;
+                const usePrice = superPrice || price;
+                let img = '';
+                if (p.productVariant?.images?.length > 0) {
+                    const path = p.productVariant.images[0].path;
+                    img = `https://cdn.zeptonow.com/production/tr:w-400,ar-1000-1000,pr-true,f-auto,q-80/${path}`;
+                }
+                const productUrl = p.productVariant?.id ? `https://www.zepto.com/pn/x/pvid/${p.productVariant.id}` : '';
+                allProducts.push({
+                    source: 'Zepto',
+                    name: p.product.name,
+                    brand: p.product.name.split(' ')[0] || '',
+                    unit: p.productVariant?.formattedPacksize || '',
+                    price: usePrice,
+                    mrp: price,
+                    image_url: img,
+                    out_of_stock: p.outOfStock,
+                    url: productUrl
+                });
+            });
+        }
+
+        if (data.bigbasket?.products) {
+            data.bigbasket.products.forEach(p => {
+                allProducts.push({
+                    source: 'BigBasket',
+                    name: p.name,
+                    brand: p.brand || '',
+                    unit: p.unit || '',
+                    price: p.price,
+                    mrp: p.mrp,
+                    image_url: p.image_url || '',
+                    out_of_stock: p.out_of_stock,
+                    url: p.url || ''
+                });
+                if (p.variants) {
+                    p.variants.forEach(v => {
+                        allProducts.push({
+                            source: 'BigBasket',
+                            name: v.name || p.name,
+                            brand: p.brand || '',
+                            unit: v.unit || '',
+                            price: v.price,
+                            mrp: v.mrp,
+                            image_url: v.image_url || p.image_url,
+                            out_of_stock: v.out_of_stock !== undefined ? v.out_of_stock : p.out_of_stock,
+                            url: v.url || p.url || ''
+                        });
+                    });
+                }
+            });
+        }
+
+        if (data['flipkart-minutes'] && Array.isArray(data['flipkart-minutes'])) {
+            data['flipkart-minutes'].forEach(p => {
+                allProducts.push({
+                    source: 'Flipkart Minutes',
+                    name: p.name,
+                    brand: p.brand || '',
+                    unit: p.quantity || '',
+                    price: p.price?.offerPrice || 0,
+                    mrp: p.price?.mrp || 0,
+                    image_url: p.imageUrl || '',
+                    out_of_stock: p.out_of_stock,
+                    url: p.url || ''
+                });
+            });
+        }
+
+        if (data.jiomart?.products) {
+            data.jiomart.products.forEach(p => {
+                allProducts.push({
+                    source: 'JioMart',
+                    name: p.name,
+                    brand: p.brand || '',
+                    unit: p.unit || '',
+                    price: p.price,
+                    mrp: p.price,
+                    image_url: p.image_url || '',
+                    out_of_stock: false,
+                    url: p.url || ''
+                });
+                if (p.variants) {
+                    p.variants.forEach(v => {
+                        allProducts.push({
+                            source: 'JioMart',
+                            name: v.name,
+                            brand: v.brand || p.brand || '',
+                            unit: v.unit || '',
+                            price: v.price,
+                            mrp: v.price,
+                            image_url: v.image_url || p.image_url,
+                            out_of_stock: false,
+                            url: v.url || p.url || ''
+                        });
+                    });
+                }
+            });
+        }
+
+        if (data.dmart?.products) {
+            data.dmart.products.forEach(p => {
+                allProducts.push({
+                    source: 'DMart',
+                    name: p.name,
+                    brand: p.brand || '',
+                    unit: p.unit || '',
+                    price: p.price,
+                    mrp: p.mrp,
+                    image_url: p.image_url || '',
+                    out_of_stock: p.out_of_stock,
+                    url: p.url || ''
+                });
+                if (p.variants) {
+                    p.variants.forEach(v => {
+                        allProducts.push({
+                            source: 'DMart',
+                            name: v.name,
+                            brand: v.brand || p.brand || '',
+                            unit: v.unit || '',
+                            price: v.price,
+                            mrp: v.mrp,
+                            image_url: v.image_url || p.image_url,
+                            out_of_stock: v.out_of_stock,
+                            url: v.url || p.url || ''
+                        });
+                    });
+                }
+            });
+        }
+
+        const groups = groupProducts(allProducts);
+        renderProductCards(groups);
+    }
+
+    function groupProducts(products) {
+        const groups = {};
+
+        products.forEach(prod => {
+            const signature = extractProductSignature(prod.brand, prod.name);
+            const cleanedName = cleanProductName(prod.name, prod.brand);
+
+            if (!groups[signature]) {
+                groups[signature] = {
+                    products: [],
+                    sources: new Set(),
+                    image: '',
+                    displayName: cleanedName,
+                    brand: prod.brand,
+                    originalNames: [cleanedName]
+                };
+            }
+
+            groups[signature].products.push(prod);
+            groups[signature].sources.add(prod.source);
+
+            if (!groups[signature].image && prod.image_url) {
+                groups[signature].image = prod.image_url;
+            }
+
+            groups[signature].originalNames.push(cleanedName);
+            const longestName = groups[signature].originalNames.reduce((a, b) => 
+                a.length > b.length ? a : b
+            );
+            groups[signature].displayName = longestName;
         });
 
-        function displayResults(data) {
-            let allProducts = [];
+        return groups;
+    }
 
-            if (data.blinkit?.products) {
-                data.blinkit.products.forEach(p => {
-                    const productUrl = p.product_id ? `https://blinkit.com/prn/x/prid/${p.product_id}` : '';
-                    allProducts.push({
-                        source: 'Blinkit',
-                        name: p.name,
-                        brand: p.brand || '',
-                        unit: p.unit || '',
-                        price: p.price,
-                        mrp: p.price,
-                        image_url: p.image_url || '',
-                        out_of_stock: p.inventory <= 0,
-                        url: productUrl
-                    });
-                });
-            }
+    function extractProductSignature(brand, productName) {
+        const keywords = new Set();
+        const name = (productName || '').toLowerCase();
 
-            if (data.instamart?.products) {
-                data.instamart.products.forEach(prod => {
-                    const productUrl = prod.product_id ? `https://www.swiggy.com/instamart/item/${prod.product_id}` : '';
-                    prod.variations.forEach(v => {
-                        let img = '';
-                        if (v.images?.length > 0) {
-                            img = `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_252,h_272/${v.images[0]}`;
-                        }
-                        allProducts.push({
-                            source: 'Instamart',
-                            name: prod.display_name,
-                            brand: prod.brand || '',
-                            unit: v.quantity || '',
-                            price: v.price?.offer_price || 0,
-                            mrp: v.price?.mrp || 0,
-                            image_url: img,
-                            out_of_stock: !v.inventory?.in_stock,
-                            url: productUrl
-                        });
-                    });
-                });
-            }
+        if (/\bshudh\b/.test(name) && !/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('shudh');
+        if (/\bselect\b/.test(name)) keywords.add('select');
+        if (/\bpremium\b/.test(name) && !/\bselect\b/.test(name)) keywords.add('premium');
+        if (/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('mp-chakki');
+        if (/\borganic\b/.test(name)) keywords.add('organic');
+        if (/\bhigh\s+protein\b/.test(name)) keywords.add('high-protein');
+        if (/\bmulti[-\s]?grain/i.test(name)) keywords.add('multigrain');
+        if (/\bsharbati\b/.test(name)) keywords.add('sharbati');
 
-            if (data.zepto && Array.isArray(data.zepto)) {
-                data.zepto.forEach(p => {
-                    const price = (p.sellingPrice || 0) / 100;
-                    const superPrice = (p.superSaverSellingPrice || 0) / 100;
-                    const usePrice = superPrice || price;
-                    let img = '';
-                    if (p.productVariant?.images?.length > 0) {
-                        const path = p.productVariant.images[0].path;
-                        img = `https://cdn.zeptonow.com/production/tr:w-400,ar-1000-1000,pr-true,f-auto,q-80/${path}`;
-                    }
-                    const productUrl = p.productVariant?.id ? `https://www.zepto.com/pn/x/pvid/${p.productVariant.id}` : '';
-                    allProducts.push({
-                        source: 'Zepto',
-                        name: p.product.name,
-                        brand: p.product.name.split(' ')[0] || '',
-                        unit: p.productVariant?.formattedPacksize || '',
-                        price: usePrice,
-                        mrp: price,
-                        image_url: img,
-                        out_of_stock: p.outOfStock,
-                        url: productUrl
-                    });
-                });
-            }
-
-            if (data.bigbasket?.products) {
-                data.bigbasket.products.forEach(p => {
-                    allProducts.push({
-                        source: 'BigBasket',
-                        name: p.name,
-                        brand: p.brand || '',
-                        unit: p.unit || '',
-                        price: p.price,
-                        mrp: p.mrp,
-                        image_url: p.image_url || '',
-                        out_of_stock: p.out_of_stock,
-                        url: p.url || ''
-                    });
-                    if (p.variants) {
-                        p.variants.forEach(v => {
-                            allProducts.push({
-                                source: 'BigBasket',
-                                name: v.name || p.name,
-                                brand: p.brand || '',
-                                unit: v.unit || '',
-                                price: v.price,
-                                mrp: v.mrp,
-                                image_url: v.image_url || p.image_url,
-                                out_of_stock: v.out_of_stock !== undefined ? v.out_of_stock : p.out_of_stock,
-                                url: v.url || p.url || ''
-                            });
-                        });
-                    }
-                });
-            }
-
-            if (data['flipkart-minutes'] && Array.isArray(data['flipkart-minutes'])) {
-                data['flipkart-minutes'].forEach(p => {
-                    allProducts.push({
-                        source: 'Flipkart Minutes',
-                        name: p.name,
-                        brand: p.brand || '',
-                        unit: p.quantity || '',
-                        price: p.price?.offerPrice || 0,
-                        mrp: p.price?.mrp || 0,
-                        image_url: p.imageUrl || '',
-                        out_of_stock: p.out_of_stock,
-                        url: p.url || ''
-                    });
-                });
-            }
-
-            if (data.jiomart?.products) {
-                data.jiomart.products.forEach(p => {
-                    allProducts.push({
-                        source: 'JioMart',
-                        name: p.name,
-                        brand: p.brand || '',
-                        unit: p.unit || '',
-                        price: p.price,
-                        mrp: p.price,
-                        image_url: p.image_url || '',
-                        out_of_stock: false,
-                        url: p.url || ''
-                    });
-                    if (p.variants) {
-                        p.variants.forEach(v => {
-                            allProducts.push({
-                                source: 'JioMart',
-                                name: v.name,
-                                brand: v.brand || p.brand || '',
-                                unit: v.unit || '',
-                                price: v.price,
-                                mrp: v.price,
-                                image_url: v.image_url || p.image_url,
-                                out_of_stock: false,
-                                url: v.url || p.url || ''
-                            });
-                        });
-                    }
-                });
-            }
-
-            if (data.dmart?.products) {
-                data.dmart.products.forEach(p => {
-                    allProducts.push({
-                        source: 'DMart',
-                        name: p.name,
-                        brand: p.brand || '',
-                        unit: p.unit || '',
-                        price: p.price,
-                        mrp: p.mrp,
-                        image_url: p.image_url || '',
-                        out_of_stock: p.out_of_stock,
-                        url: p.url || ''
-                    });
-                    if (p.variants) {
-                        p.variants.forEach(v => {
-                            allProducts.push({
-                                source: 'DMart',
-                                name: v.name,
-                                brand: v.brand || p.brand || '',
-                                unit: v.unit || '',
-                                price: v.price,
-                                mrp: v.mrp,
-                                image_url: v.image_url || p.image_url,
-                                out_of_stock: v.out_of_stock,
-                                url: v.url || p.url || ''
-                            });
-                        });
-                    }
-                });
-            }
-
-            const groups = groupProducts(allProducts);
-            renderProductCards(groups);
+        if (keywords.size === 0) {
+            if (/\bchakki\b/.test(name)) keywords.add('chakki');
+            else keywords.add('generic');
         }
 
-        function groupProducts(products) {
-            const groups = {};
+        const brandKey = (brand || '').toLowerCase().trim() || 'no-brand';
+        const keywordsKey = Array.from(keywords).sort().join('-');
 
-            products.forEach(prod => {
-                const signature = extractProductSignature(prod.brand, prod.name);
-                const cleanedName = cleanProductName(prod.name, prod.brand);
+        return `${brandKey}__${keywordsKey}`;
+    }
 
-                if (!groups[signature]) {
-                    groups[signature] = {
-                        products: [],
-                        sources: new Set(),
-                        image: '',
-                        displayName: cleanedName,
-                        brand: prod.brand,
-                        originalNames: [cleanedName]
-                    };
-                }
+    function cleanProductName(name, brand) {
+        let cleaned = name || '';
+        const fluffPatterns = [
+            /\(100%\s+atta,?\s+0%\s+maida\)/gi,
+            /\b0%\s+maida\b/gi,
+            /\b100%\s+(wheat|atta|organic)\b/gi,
+            /\bfor\s+softer\s+rotis?\b/gi,
+            /\|\s*.*/g,
+        ];
 
-                groups[signature].products.push(prod);
-                groups[signature].sources.add(prod.source);
+        fluffPatterns.forEach(pattern => {
+            cleaned = cleaned.replace(pattern, '');
+        });
 
-                if (!groups[signature].image && prod.image_url) {
-                    groups[signature].image = prod.image_url;
-                }
+        return cleaned.replace(/\s+/g, ' ').trim();
+    }
 
-                groups[signature].originalNames.push(cleanedName);
-                const longestName = groups[signature].originalNames.reduce((a, b) => 
-                    a.length > b.length ? a : b
-                );
-                groups[signature].displayName = longestName;
-            });
+    function renderProductCards(groups) {
+        const sortedKeys = Object.keys(groups).sort((a, b) => {
+            return groups[b].sources.size - groups[a].sources.size;
+        });
 
-            return groups;
+        if (sortedKeys.length === 0) {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="no-results">
+                    <h3>No products found</h3>
+                    <p>Try searching for something else</p>
+                </div>
+            `;
+            return;
         }
 
-        function extractProductSignature(brand, productName) {
-            const keywords = new Set();
-            const name = (productName || '').toLowerCase();
-
-            if (/\bshudh\b/.test(name) && !/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('shudh');
-            if (/\bselect\b/.test(name)) keywords.add('select');
-            if (/\bpremium\b/.test(name) && !/\bselect\b/.test(name)) keywords.add('premium');
-            if (/\bm\.?p\.?\s+chakki\b/.test(name)) keywords.add('mp-chakki');
-            if (/\borganic\b/.test(name)) keywords.add('organic');
-            if (/\bhigh\s+protein\b/.test(name)) keywords.add('high-protein');
-            if (/\bmulti[-\s]?grain/i.test(name)) keywords.add('multigrain');
-            if (/\bsharbati\b/.test(name)) keywords.add('sharbati');
-
-            if (keywords.size === 0) {
-                if (/\bchakki\b/.test(name)) keywords.add('chakki');
-                else keywords.add('generic');
-            }
-
-            const brandKey = (brand || '').toLowerCase().trim() || 'no-brand';
-            const keywordsKey = Array.from(keywords).sort().join('-');
-
-            return `${brandKey}__${keywordsKey}`;
-        }
-
-        function cleanProductName(name, brand) {
-            let cleaned = name || '';
-            const fluffPatterns = [
-                /\(100%\s+atta,?\s+0%\s+maida\)/gi,
-                /\b0%\s+maida\b/gi,
-                /\b100%\s+(wheat|atta|organic)\b/gi,
-                /\bfor\s+softer\s+rotis?\b/gi,
-                /\|\s*.*/g,
-            ];
-
-            fluffPatterns.forEach(pattern => {
-                cleaned = cleaned.replace(pattern, '');
-            });
-
-            return cleaned.replace(/\s+/g, ' ').trim();
-        }
-
-        function renderProductCards(groups) {
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
-                return groups[b].sources.size - groups[a].sources.size;
-            });
-
-            if (sortedKeys.length === 0) {
-                document.getElementById('resultsContainer').innerHTML = `
-                    <div class="no-results">
-                        <h3>No products found</h3>
-                        <p>Try searching for something else</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const resultsHTML = `<div class="results">${sortedKeys.map(key => {
-                const group = groups[key];
+        const resultsHTML = `<div class="results">${sortedKeys.map(key => {
+            const group = groups[key];
+            
+            const unitGroups = {};
+            group.products.forEach(prod => {
+                const unitSafe = (prod.unit || 'unit').toString();
+                const normalizedUnit = unitSafe.toLowerCase().replace(/\s+/g, ' ').trim();
+                if (!unitGroups[normalizedUnit]) unitGroups[normalizedUnit] = [];
                 
-                const unitGroups = {};
-                group.products.forEach(prod => {
-                    const unitSafe = (prod.unit || 'unit').toString();
-                    const normalizedUnit = unitSafe.toLowerCase().replace(/\s+/g, ' ').trim();
-                    if (!unitGroups[normalizedUnit]) unitGroups[normalizedUnit] = [];
-                    
-                    const isDuplicate = unitGroups[normalizedUnit].some(existing => 
-                        existing.source === prod.source && 
-                        Math.abs(existing.price - prod.price) < 0.01
-                    );
-                    
-                    if (!isDuplicate) {
-                        unitGroups[normalizedUnit].push(prod);
-                    }
-                });
+                const isDuplicate = unitGroups[normalizedUnit].some(existing => 
+                    existing.source === prod.source && 
+                    Math.abs(existing.price - prod.price) < 0.01
+                );
+                
+                if (!isDuplicate) {
+                    unitGroups[normalizedUnit].push(prod);
+                }
+            });
 
-                const sortedUnits = Object.keys(unitGroups).sort((a, b) => {
-                    const na = parseFloat(a), nb = parseFloat(b);
-                    if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                    return a.localeCompare(b);
-                });
+            const sortedUnits = Object.keys(unitGroups).sort((a, b) => {
+                const na = parseFloat(a), nb = parseFloat(b);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+            });
 
-                const variantsHTML = sortedUnits.map(unit => {
-                    const variants = unitGroups[unit].sort((a, b) => (a.price || 0) - (b.price || 0));
-                    const cheapestPrice = variants.length > 0 ? variants[0].price : 0;
+            const variantsHTML = sortedUnits.map(unit => {
+                const variants = unitGroups[unit].sort((a, b) => (a.price || 0) - (b.price || 0));
+                const cheapestPrice = variants.length > 0 ? variants[0].price : 0;
+                
+                const pricesHTML = variants.map(p => {
+                    const isCheapest = Math.abs(p.price - cheapestPrice) < 0.01;
+                    const sourceClass = p.source.toLowerCase().replace(/\s+/g, '');
                     
-                    const pricesHTML = variants.map(p => {
-                        const isCheapest = Math.abs(p.price - cheapestPrice) < 0.01;
-                        const sourceClass = p.source.toLowerCase().replace(/\s+/g, '');
-                        
-                        return `
-                            <div class="price-row">
-                                <div class="price-left">
-                                    <span class="source-tag ${sourceClass}">${p.source}</span>
-                                </div>
-                                <div class="price-right">
-                                    <span class="price-amount">
-                                        ${isCheapest ? '<span class="crown-icon">👑</span>' : ''}
-                                        ₹${(p.price || 0).toFixed(2)}
-                                    </span>
-                                    <span class="price-link">
-                                        ${p.url ? '<a href="' + p.url + '" target="_blank">🔗</a>' : ''}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
                     return `
-                        <div class="variant-row">
-                            <div class="variant-label">${unit}</div>
-                            ${pricesHTML}
+                        <div class="price-row">
+                            <div class="price-left">
+                                <span class="source-tag ${sourceClass}">${p.source}</span>
+                            </div>
+                            <div class="price-right">
+                                <span class="price-amount">
+                                    ${isCheapest ? '<span class="crown-icon">👑</span>' : ''}
+                                    ₹${(p.price || 0).toFixed(2)}
+                                </span>
+                                <span class="price-link">
+                                    ${p.url ? '<a href="' + p.url + '" target="_blank">🔗</a>' : ''}
+                                </span>
+                            </div>
                         </div>
                     `;
                 }).join('');
 
                 return `
-                    <div class="product-card">
-                        ${group.image ? 
-                            `<img src="${group.image}" alt="${group.displayName}" class="product-image" onerror="this.outerHTML='<div class=\\'product-image-placeholder\\'>No Image</div>'">` :
-                            `<div class="product-image-placeholder">No Image</div>`
-                        }
-                        <div class="product-info">
-                            <div class="product-name">${group.displayName}</div>
-                            <div class="product-brand">${group.brand || 'Generic'}</div>
-                            <div class="price-info">
-                                ${variantsHTML}
-                            </div>
-                        </div>
+                    <div class="variant-row">
+                        <div class="variant-label">${unit}</div>
+                        ${pricesHTML}
                     </div>
                 `;
-            }).join('')}</div>`;
+            }).join('');
 
-            document.getElementById('resultsContainer').innerHTML = resultsHTML;
+            return `
+                <div class="product-card">
+                    ${group.image ? 
+                        `<img src="${group.image}" alt="${group.displayName}" class="product-image" onerror="this.outerHTML='<div class=\\'product-image-placeholder\\'>No Image</div>'">` :
+                        `<div class="product-image-placeholder">No Image</div>`
+                    }
+                    <div class="product-info">
+                        <div class="product-name">${group.displayName}</div>
+                        <div class="product-brand">${group.brand || 'Generic'}</div>
+                        <div class="price-info">
+                            ${variantsHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('')}</div>`;
+
+        document.getElementById('resultsContainer').innerHTML = resultsHTML;
+    }
+
+    document.getElementById('locationModal').addEventListener('click', (e) => {
+        if (e.target.id === 'locationModal') {
+            closeLocationModal();
         }
-
-        document.getElementById('locationModal').addEventListener('click', (e) => {
-            if (e.target.id === 'locationModal') {
-                closeLocationModal();
-            }
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
