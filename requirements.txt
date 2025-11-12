@@ -1,4 +1,5 @@
 Flask==3.0.0
 requests==2.31.0
-pandas>=2.1.0,<2.2.0
+pandas==2.2.0rc0  # Pre-release version with Python 3.13 support
+numpy>=1.26.0
 Werkzeug==3.0.1
