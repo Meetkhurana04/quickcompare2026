@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>QuickCompare - Price Comparison Made Easy</title>
     <style>
@@ -23,8 +27,15 @@
             background: #000;
             color: var(--text);
             min-height: 100vh;
+            height: 100vh;
             overflow-x: hidden;
+            overflow-y: hidden;
             position: relative;
+        }
+
+        body.searched {
+            height: auto;
+            overflow-y: auto;
         }
 
         .gradient-bg {
@@ -76,12 +87,13 @@
 
         .background-text {
             position: fixed;
+            opacity: 0.7;
             top: 18%;
             left: 50%;
             transform: translateX(-50%);
-            font-size: clamp(64px, 20vw, 240px);
+            font-size: clamp(64px, 8vw, 240px);
             font-weight: 800;
-            letter-spacing: -0.02em;
+            letter-spacing: 10px;
             white-space: nowrap;
             pointer-events: none;
             z-index: 0;
@@ -108,57 +120,118 @@
         }
 
         .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .navbar.glass { background: rgba(15, 17, 25, 0.5); }
-        .navbar h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 0.2px;
-        }
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    background: rgba(15, 17, 25, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.15);
+    overflow: hidden;
+}
+.navbar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa);
+    animation: moveLine 6s linear infinite;
+    opacity: 0.6;
+}
+@keyframes moveLine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+.navbar h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: "Orbitron", "Poppins", sans-serif;
+    background: linear-gradient(90deg, #c084fc 0%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(147, 51, 234, 0.4),
+                 0 0 25px rgba(96, 165, 250, 0.3);
+    letter-spacing: 1px;
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(147, 51, 234, 0.4),
+                     0 0 20px rgba(96, 165, 250, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(147, 51, 234, 0.6),
+                     0 0 35px rgba(96, 165, 250, 0.4);
+    }
+}
+
 
         .container {
             position: relative;
             z-index: 2;
-            max-width: 1400px;
-            margin: 0 auto;
+            max-width: 1850px;
+            margin-right: 10vw;
+            margin-left: 10vw;
+            margin-top: -80px;
             padding: 2rem 1rem;
-            min-height: calc(100vh - 120px);
-            
+            min-height: calc(100vh - var(--nav-h));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.4s ease;
         }
 
-        .hero { 
-            margin-top: -15px;
-            text-align: center;
-            color: var(--text);
-            margin-bottom: 2rem;
-            transition: all 0.4s ease;
-            opacity: 1;
-            transform: translateY(0);
+        .container.searched {
+            justify-content: flex-start;
+            padding-top: 2rem;
+            min-height: auto;
         }
-        .hero h2 {
-            font-size: clamp(1.6rem, 3vw, 2.5rem);
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-        }
-        .hero p {
-            font-size: 1.05rem;
-            color: var(--muted);
-        }
-        .hero.compact { 
-            margin-bottom: 0.5rem;
-            opacity: 0;
-            transform: translateY(-20px);
-            height: 0;
-            overflow: hidden;
-        }
+
+       .hero {
+    text-align: center;
+    margin-bottom: 1rem;
+    position: relative;
+    top: -30px;
+}
+
+.hero.compact {
+    margin-bottom: -1.05rem;
+    top: 0; /* Reset the manual offset */
+    opacity: 0;
+    transform: translateY(-20px);
+    height: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+
+.hero h2 {
+    font-size: clamp(2rem, 2vw, 3rem);
+    font-weight: 700;
+    color: #fff;
+    text-shadow:
+        0 0 8px rgba(102, 126, 234, 0.7),
+        0 0 16px rgba(167, 139, 250, 0.6),
+        0 0 32px rgba(102, 126, 234, 0.3);
+    letter-spacing: 0.8px;
+    animation: pulseGlow 3s infinite ease-in-out;
+}
+
+.hero p {
+    font-size: 1.05rem;
+    color: rgba(180, 190, 210, 0.8);
+    text-shadow: 0 0 6px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes pulseGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(167, 139, 250, 0.7); }
+    50% { text-shadow: 0 0 25px rgba(102, 126, 234, 0.9); }
+}
+
 
         .search-wrapper {
             display: flex;
@@ -166,6 +239,7 @@
             gap: 1rem;
             margin-bottom: 1.25rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: -10px;
         }
 
         .search-wrapper.compact {
@@ -174,7 +248,7 @@
             z-index: 90;
             flex-direction: row;
             gap: 0.6rem;
-            margin-bottom: 1rem;
+            margin-bottom: 7rem;
         }
 
         .search-item {
@@ -205,18 +279,31 @@
 
         .input-group {
             transition: all 0.3s ease;
+            
+            
+            
         }
 
-        .input-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--muted);
-            margin-bottom: 0.45rem;
-            transition: all 0.3s ease;
-            opacity: 1;
-            max-height: 20px;
-        }
+.input-group label {
+    display: block;
+    font-family: 'Orbitron', 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #c084fc;
+    margin-left: 48%;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-top: -4px;
+    margin-bottom: 0.9rem;
+    text-shadow: 0 0 10px rgba(147, 51, 234, 0.6), 0 0 20px rgba(147, 51, 234, 0.4);
+    transition: text-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.input-group label:hover {
+    text-shadow: 0 0 15px rgba(147, 51, 234, 0.9);
+    transform: scale(1.05);
+}
+
 
         .search-wrapper.compact .input-group label {
             opacity: 0;
@@ -253,15 +340,17 @@
         .location-text.selected { color: var(--text); font-weight: 600; }
 
         .change-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    white-space: nowrap;
         }
 
         .search-wrapper.compact .change-btn {
@@ -270,7 +359,7 @@
             border-radius: 6px;
         }
 
-        .change-btn:hover { transform: translateY(-1px); }
+        .change-btn:hover { transform: translateY(-2px); }
 
         .search-input-row {
             display: flex;
@@ -550,24 +639,46 @@
             margin-left: 0.3rem;
         }
 
-        .footer {
-            position: relative;
-            z-index: 2;
-            margin-top: 3rem;
-            text-align: center;
-            padding: 1.2rem 1rem;
-            border-top-left-radius: 14px; border-top-right-radius: 14px;
-            border: 1px solid var(--glass-border);
-            background: rgba(15, 17, 25, 0.5);
-            backdrop-filter: saturate(180%) blur(12px);
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-        .footer strong {
-            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.footer {
+    position: fixed;
+    bottom: -8px;
+    width: 100%;
+    font-size: 16px;
+    text-align: center;
+    height:60px;
+    padding: 0.6rem;
+    background: rgba(10, 10, 20, 0.7);
+    border-top: 1px solid rgba(167, 139, 250, 0.2);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    color: rgba(225, 230, 255, 0.9);
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 500;
+    text-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+    animation: glowPulse 6s ease-in-out infinite;
+    z-index: 99;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 -2px 18px rgba(96, 165, 250, 0.25);
+    }
+    50% {
+        box-shadow: 0 -4px 30px rgba(147, 51, 234, 0.35);
+    }
+}
+
+.footer strong {
+    background: linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: footerGlow 3s ease-in-out infinite;
+}
+
+@keyframes footerGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(147, 51, 234, 0.4); }
+    50% { text-shadow: 0 0 25px rgba(96, 165, 250, 0.5); }
+}
 
         .loading { text-align: center; padding: 3rem; color: var(--text); }
         .spinner {
@@ -587,33 +698,389 @@
             color: var(--muted);
         }
         .no-results h3 { margin-bottom: 0.5rem; color: var(--text); }
+
+/* ------------------------------
+   📱 Mobile Fix (393x851 & below)
+---------------------------------*/
+@media (max-width: 430px) {
+
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  body.searched {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .container {
+    margin: 0 auto;
+    padding: 1.2rem 0.8rem;
+    max-width: 100%;
+    min-height: auto;
+    top: 80px;
+  }
+
+  .container.searched {
+    padding-top: 0.8rem;
+  }
+
+  .background-text {
+    top: 72%;
+    font-size: 28px;
+    opacity: 0.5;
+    letter-spacing: 0em;
+  }
+
+  /* Hero - Before Search */
+  .hero {
+    top: 0;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+  }
+
+  /* Hero - After Search (Completely Hidden) */
+  .hero.compact {
+    display: none !important;
+  }
+
+  .hero h2 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: 0.4px;
+    text-shadow:
+      0 0 8px rgba(102,126,234,0.7),
+      0 0 14px rgba(167,139,250,0.6);
+  }
+
+  .hero p {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: rgba(190, 200, 220, 0.85);
+  }
+
+  /* Search Wrapper - Before Search (Stacked) */
+  .search-wrapper {
+    gap: 1rem;
+    margin-top: 0.4rem;
+    flex-direction: column;
+  }
+  .footer {
+    position: fixed;
+    bottom: -8px;
+    width: 100%;
+    font-size: 12px;
+    text-align: center;
+    height:50px;
+    padding: 0.4rem;
+    background: rgba(10, 10, 20, 0.7);
+    border-top: 1px solid rgba(167, 139, 250, 0.2);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    color: rgba(225, 230, 255, 0.9);
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 500;
+    text-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+    animation: glowPulse 6s ease-in-out infinite;
+    z-index: 99;
+}
+
+  /* Search Wrapper - After Search (Compact & Inline) */
+  .search-wrapper.compact {
+    position: sticky;
+    top: calc(var(--nav-h) + 4px);
+    z-index: 90;
+    flex-direction: row !important; /* ✅ Force horizontal wrapper */
+    gap: 0.4rem;
+    margin-top: -80px;
+    margin-bottom: 0.8rem;
+    padding: 0.5rem;
+    background: rgba(15, 17, 25, 0.92);
+    border-radius: 10px;
+    align-items: center;
+  }
+
+  /* Each search item should be inline */
+  .search-wrapper.compact .search-item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: row; /* ✅ NOT column */
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .search-wrapper.compact .search-item:first-child {
+    max-width: 48%; /* Location takes less space */
+    flex: 0 0 auto;
+  }
+
+  .search-wrapper.compact .search-item:nth-child(2) {
+    flex: 1; /* Search takes remaining */
+  }
+
+  /* Hide labels in compact */
+  .search-wrapper.compact .input-group label {
+    display: none !important;
+  }
+
+  /* Each row should be horizontal */
+  .search-wrapper.compact .search-input-row {
+    display: flex;
+    flex-direction: row !important; /* ✅ Force horizontal */
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+  }
+
+  .search-wrapper.compact .input-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Input fields compact size */
+  .search-wrapper.compact input[type="text"],
+  .search-wrapper.compact .location-display {
+    flex: 1;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.65rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Icon-only buttons */
+  .search-wrapper.compact .change-btn,
+  .search-wrapper.compact .search-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-indent: -9999px; /* Hide text */
+    position: relative;
+  }
+
+  /* Add icons using ::before */
+  .search-wrapper.compact .change-btn::before {
+     content: "\f3c5"; /* 📍 Font Awesome 'location-dot' icon */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  text-indent: 0;
+  position: absolute;
+  }
+
+  .search-wrapper.compact .search-btn::before {
+     content: "\f002"; /* 🔍 Font Awesome 'search' icon */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  text-indent: 0;
+  position: absolute;
+  }
+
+  /* Normal Search Items (Before Search - Stacked) */
+  .search-item {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .input-group label {
+    font-size: 0.7rem;
+    margin-left: 0;
+    text-align: center;
+    margin-bottom: 0.6rem;
+  }
+
+  .search-input-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .location-display,
+  input[type="text"] {
+    font-size: 0.7rem;
+    padding: 0.55rem 0.8rem;
+  }
+
+  .change-btn,
+  .search-btn {
+    width: 100%;
+    font-size: 0.7rem;
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+  }
+
+  .navbar {
+    padding: 0.9rem 1rem;
+  }
+
+  .navbar h1 {
+    font-size: 1.1rem;
+  }
+
+  /* ============================================
+     PRODUCT CARDS - 2 COLUMNS ON MOBILE
+  ============================================ */
+  .results {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem !important;
+    margin-top: 0.8rem;
+  }
+
+  .product-card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .product-image,
+  .product-image-placeholder {
+    height: 140px;
+  }
+
+  .product-info {
+    padding: 0.7rem;
+  }
+
+  .product-name {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    min-height: 32px;
+    margin-bottom: 0.3rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-brand {
+    font-size: 0.65rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .price-info {
+    padding-top: 0.5rem;
+  }
+
+  .variant-row {
+    margin-bottom: 0.6rem;
+  }
+
+  .variant-label {
+    font-size: 0.65rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .price-row {
+    padding: 0.3rem 0;
+    font-size: 0.65rem;
+    gap: 0.3rem;
+  }
+
+  .source-tag {
+    font-size: 0.55rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 4px;
+  }
+
+  .price-amount {
+    font-size: 0.7rem;
+  }
+
+  .crown-icon {
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
+  }
+
+  .price-link {
+    font-size: 0.8rem;
+    width: 16px;
+  }
+
+  /* Modal on Mobile */
+  .modal-content {
+    width: 92%;
+    height: 85%;
+    padding: 1rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .suggestion-item {
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Loading State */
+  .loading {
+    padding: 2rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* No Results */
+  .no-results {
+    padding: 1.5rem 1rem;
+  }
+
+  .no-results h3 {
+    font-size: 1rem;
+  }
+
+  .no-results p {
+    font-size: 0.8rem;
+  }
+
+}
+
     </style>
 </head>
 <body>
     <div class="gradient-bg"></div>
     <div class="stars" id="stars"></div>
-    <div class="background-text" id="bgText">QUICKCOMPARE</div>
+    <div class="background-text" id="bgText"></div>
 
     <div class="navbar glass">
-        <h1>QuickCompare</h1>
+        <h1 onclick="window.location.reload()" style="cursor: pointer;">QuickCompare</h1>
     </div>
 
-    <div class="container">
+    <div class="container" id="container">
         <div class="hero" id="hero">
             <h2>Compare Prices Instantly</h2>
             <p>Find the best deals across Blinkit, Instamart, Zepto, BigBasket, and more</p>
         </div>
 
         <div class="search-wrapper" id="searchWrapper">
-            <div class="search-item">
-                <div class="input-group">
-                    <label>Delivery Location</label>
-                    <div class="location-display" id="locationDisplay" onclick="openLocationModal()">
-                        <span class="location-text" id="locationText">Select your location</span>
-                        <button class="change-btn">Select</button>
-                    </div>
-                </div>
+          <div class="search-item">
+    <div class="search-input-row">
+        <div class="input-group">
+            <label>Delivery Location</label>
+            <div class="location-display" id="locationDisplay" onclick="openLocationModal()">
+                <span class="location-text" id="locationText">Select your location</span>
             </div>
+        </div>
+        <button class="change-btn" onclick="openLocationModal()"><span>Change</span></button>
+    </div>
+</div>
+
 
             <div class="search-item">
                 <div class="search-input-row">
@@ -627,7 +1094,7 @@
                         >
                     </div>
                     <button class="search-btn" id="searchBtn" onclick="searchProducts()" disabled>
-                        Search
+                       <span>Search</span>
                     </button>
                 </div>
             </div>
@@ -654,11 +1121,11 @@
     </div>
 
     <div class="footer glass">
-        <p>Made with ❤️ by <strong>Meet</strong> · © <span id="year"></span> QuickCompare</p>
+        <p>Made with ❤️ by <strong>Meet</strong></p>
     </div>
 
     <script>
-        const BACKGROUND_TEXT = 'QUICKCOMPARE';
+        const BACKGROUND_TEXT = '#Support_Local';
         document.getElementById('bgText').textContent = BACKGROUND_TEXT;
 
         const starsContainer = document.getElementById('stars');
@@ -686,7 +1153,7 @@
             }
         }, 3500);
 
-        document.getElementById('year').textContent = new Date().getFullYear();
+        // document.getElementById('year').textContent = new Date().getFullYear();
 
         window.addEventListener('load', () => {
             const navH = document.querySelector('.navbar')?.offsetHeight || 64;
@@ -710,23 +1177,19 @@
                 if (savedLocation) {
                     const locationData = JSON.parse(savedLocation);
                     
-                    // Restore location data
                     currentLat = locationData.lat;
                     currentLng = locationData.lng;
                     currentPin = locationData.pin;
                     
-                    // Update UI
                     document.getElementById('locationText').textContent = locationData.name;
                     document.getElementById('locationText').classList.add('selected');
                     document.getElementById('locationDisplay').classList.add('selected');
                     document.querySelector('.change-btn').textContent = 'Change';
                     
-                    // Enable search
                     locationSelected = true;
                     document.getElementById('productInput').disabled = false;
                     document.getElementById('searchBtn').disabled = false;
                     
-                    // Fetch store IDs for the saved location
                     updateStoreIds();
                 }
             } catch (e) {
@@ -734,7 +1197,6 @@
             }
         }
 
-        // Save location to localStorage
         function saveLocation(name, lat, lng, pin) {
             try {
                 const locationData = {
@@ -750,7 +1212,6 @@
             }
         }
 
-        // Load saved location on page load
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedLocation();
         });
@@ -817,7 +1278,6 @@
                     currentLng = geo.lng;
                     if (geo.postcode) currentPin = geo.postcode;
                     
-                    // Save to localStorage
                     saveLocation(selected.name, currentLat, currentLng, currentPin);
                     
                     document.getElementById('locationText').textContent = selected.name;
@@ -869,8 +1329,11 @@
             const query = document.getElementById('productInput').value.trim();
             if (!query || !locationSelected) return;
 
+            document.body.classList.add('searched');
+            document.getElementById('container').classList.add('searched');
             document.getElementById('hero').classList.add('compact');
             document.getElementById('searchWrapper').classList.add('compact');
+            document.querySelector('.footer').classList.add('visible');
 
             document.getElementById('resultsContainer').innerHTML = `
                 <div class="loading">
@@ -913,7 +1376,6 @@
         function displayResults(data) {
             let allProducts = [];
 
-            // Parse Blinkit - Generate URL using product_id
             if (data.blinkit?.products) {
                 data.blinkit.products.forEach(p => {
                     const productUrl = p.product_id ? `https://blinkit.com/prn/x/prid/${p.product_id}` : '';
@@ -931,14 +1393,13 @@
                 });
             }
 
-            // Parse Instamart - Generate URL using product_id
             if (data.instamart?.products) {
                 data.instamart.products.forEach(prod => {
                     const productUrl = prod.product_id ? `https://www.swiggy.com/instamart/item/${prod.product_id}` : '';
                     prod.variations.forEach(v => {
                         let img = '';
                         if (v.images?.length > 0) {
-                            img = `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_252,h_272/${v.images[0]}.png`;
+                            img = `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_252,h_272/${v.images[0]}`;
                         }
                         allProducts.push({
                             source: 'Instamart',
@@ -955,7 +1416,6 @@
                 });
             }
 
-            // Parse Zepto - Generate URL using productVariant.id
             if (data.zepto && Array.isArray(data.zepto)) {
                 data.zepto.forEach(p => {
                     const price = (p.sellingPrice || 0) / 100;
@@ -964,7 +1424,7 @@
                     let img = '';
                     if (p.productVariant?.images?.length > 0) {
                         const path = p.productVariant.images[0].path;
-                        img = `https://cdn.zeptonow.com/production/tr:w-400,ar-1000-1000,pr-true,f-auto,q-80/cms/${path}`;
+                        img = `https://cdn.zeptonow.com/production/tr:w-400,ar-1000-1000,pr-true,f-auto,q-80/${path}`;
                     }
                     const productUrl = p.productVariant?.id ? `https://www.zepto.com/pn/x/pvid/${p.productVariant.id}` : '';
                     allProducts.push({
@@ -981,7 +1441,6 @@
                 });
             }
 
-            // Parse BigBasket
             if (data.bigbasket?.products) {
                 data.bigbasket.products.forEach(p => {
                     allProducts.push({
@@ -1013,7 +1472,6 @@
                 });
             }
 
-            // Parse Flipkart Minutes
             if (data['flipkart-minutes'] && Array.isArray(data['flipkart-minutes'])) {
                 data['flipkart-minutes'].forEach(p => {
                     allProducts.push({
@@ -1030,7 +1488,6 @@
                 });
             }
 
-            // Parse JioMart
             if (data.jiomart?.products) {
                 data.jiomart.products.forEach(p => {
                     allProducts.push({
@@ -1062,7 +1519,6 @@
                 });
             }
 
-            // Parse DMart
             if (data.dmart?.products) {
                 data.dmart.products.forEach(p => {
                     allProducts.push({
